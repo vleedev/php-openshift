@@ -5,7 +5,7 @@ Can be used for any PHP application inherit official [yii2-docker](https://githu
 If you wan't to do some modification in the image, you `Dockerfile` should look something like that:
 
 ```
-FROM linkbn/php-openshift:X.X-apache
+FROM linkbn/php-openshift:X.X
 ARG USER_ID=2000
 USER root
 COPY src/ /app/
