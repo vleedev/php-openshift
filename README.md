@@ -90,7 +90,7 @@ docker-php-ext-enable extension-name
 
 If the module you need is missing you can just add them in your `Dockerfile`, see [php docker](https://hub.docker.com/_/php/) image documentation for "[How to install more PHP extensions](https://github.com/docker-library/docs/blob/master/php/README.md#how-to-install-more-php-extensions)".
 
-* **PHP_VERSION**: Version of php used to do the build (default: `7.2`).
+* **PHP_VERSION**: Version of php used to do the build (default: `latest`).
 * **PHP_OPCACHE_MAX_ACCELERATED_FILES_DEFAULT**: 
 
 ### Application configuration (buildtime)
