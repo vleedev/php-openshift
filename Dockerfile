@@ -1,3 +1,4 @@
+
 ARG PHP_VERSION=7.3
 FROM yiisoftware/yii2-php:${PHP_VERSION}-apache
 ARG USER_ID=2000
@@ -14,6 +15,7 @@ RUN apt-get -y update \
 # System - Set default timezone
 ENV TZ ${TZ}
 # System - Define HOME directory
+ENV USER_HOME ${USER_HOME}
 RUN mkdir -p ${USER_HOME} \
     && chgrp -R 0 ${USER_HOME} \
     && chmod -R g=u ${USER_HOME}
@@ -67,7 +69,7 @@ RUN pecl install redis \
     && docker-php-ext-enable redis
 # Php - Yaml (for php 5.X use 1.3.2 last compatible version)
 RUN apt-get install -y --no-install-recommends libyaml-dev libyaml-0-2 \
-    && pecl install yaml-$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 6 ] && echo "2.0.0" || echo "1.3.2") \
+    && pecl install yaml-$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 6 ] && echo "2.0.4" || echo "1.3.2") \
     && docker-php-ext-enable yaml \
     && apt-get remove -y libyaml-dev
 # Php - GMP

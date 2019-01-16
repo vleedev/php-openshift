@@ -4,8 +4,8 @@ Can be used for any PHP application inherit official [yii2-docker](https://githu
 
 If you wan't to do some modification in the image, you `Dockerfile` should look something like that:
 
-```
-FROM linkbn/php-openshift:X.X-apache
+```Dockerfile
+FROM linkbn/php-openshift:X.X
 ARG USER_ID=2000
 USER root
 COPY src/ /app/
@@ -15,25 +15,38 @@ USER ${USER_ID}
 
 ## Entry-point specificity
 
-Entry-point script can run:
-
-* **Apache HTTPD** server (default behavior if no command or args)
-* **cron daemon** with environment variable properly setup
-* [Yii CLI application](https://www.yiiframework.com/doc/guide/2.0/en/tutorial-console) with your custom arguments
-* `bash`, `php` and `composer` command are also allowed
-* `loop` execute the command after 
-
-The entry-point script is also providing those helpers:
-
-## Wait for a list of service availability
-
-Before running your service you may be need to wait for other to be up and listening (example wait for you database server to be up and running on port 3306). You can provide the environment variable `WAIT_FOR_IT_LIST` with the list of service to test before starting up the application.
+The entry-point script is also providing a Wait for a list of service availability helper. Before running your command or service, you may be need to wait for other to be up and listening (example wait for you database server to be up and running on port 3306). You can provide the environment variable `WAIT_FOR_IT_LIST` with the list of service to test before starting up the application.
 
 If you want to wait for a mysql server on port 3306 and an SMTP server on port 25, just do:
 
 ```
 WAIT_FOR_IT_LIST=mysql:3306,smtp:25
 ```
+
+Entry-point can be use for the following action:
+
+### Run Apache HTTPD
+
+That the default command run if no other command is provide. Apache is running on port `8080`.
+
+### Run cron daemon
+
+If the command is `cron`.
+ 
+### Run php, bash, composer or yii commands
+
+You can provide the command with a list of arguments.
+
+### Run a command periodically.
+
+If you enter a command with `loop my_command_to_run`, the command provide will be run every **LOOP_TIMEOUT** by default `1d`. so `my_command_to_run` will be execute and when it's finish it will be run again in **LOOP_TIMEOUT**.
+
+
+
+
+
+
+
 
 ## Image Configuration at buildtime
 
@@ -90,7 +103,7 @@ docker-php-ext-enable extension-name
 
 If the module you need is missing you can just add them in your `Dockerfile`, see [php docker](https://hub.docker.com/_/php/) image documentation for "[How to install more PHP extensions](https://github.com/docker-library/docs/blob/master/php/README.md#how-to-install-more-php-extensions)".
 
-* **PHP_VERSION**: Version of php used to do the build (default: `latest`).
+* **PHP_VERSION**: Version of php used to do the build (default: `7.3`).
 * **PHP_OPCACHE_MAX_ACCELERATED_FILES_DEFAULT**: 
 
 ### Application configuration (buildtime)
@@ -139,16 +152,19 @@ With environment variables (`docker run  -e VAR_NAME=VALUE`).
 
 * **APACHE_RUN_USER**: Username of the user that will run apache (default: `$USER_NAME`).
 * **APACHE_SERVER_NAME**: Set Apache ServerName (default: `__default__`).
+
+#### Apache HTTPD remoteip configuration (runtime)
+
 * **APACHE_REMOTE_IP_HEADER**: Set `RemoteIPHeader` directive of the [remote_ip module](https://httpd.apache.org/docs/trunk/mod/mod_remoteip.html) (default: `X-Forwarded-For`)
 * **APACHE_REMOTE_IP_TRUSTED_PROXY**: Set `RemoteIPtrustedProxy` directive of the [remote_ip module](https://httpd.apache.org/docs/trunk/mod/mod_remoteip.html) (default: `10.0.0.0/8 172.16.0.0/12 192.168.0.0/16`)
 * **APACHE_REMOTE_IP_INTERNAL_PROXY**: Set `RemoteIPInternalProxy` directive of the [remote_ip module](https://httpd.apache.org/docs/trunk/mod/mod_remoteip.html) (default: `10.0.0.0/8 172.16.0.0/12 192.168.0.0/16`)
 
-#### Apache HTTPD syslog configuration
+#### Apache HTTPD syslog configuration (runtime)
 
 Will be use only if you add `a2enconf syslog` in your `Dockerfile`.
 
-* **APACHE_SYSLOG_HOST**: Ip or dns of the UDP syslog server (default: `none`).
-* **APACHE_SYSLOG_PORT**: Port of syslog server (default: `514`).
+* **APACHE_SYSLOG_HOST**: Ip or dns of the UDP syslog server (default: `$SYSLOG_HOST`).
+* **APACHE_SYSLOG_PORT**: Port of syslog server (default: `$SYSLOG_PORT or 514`).
 * **APACHE_PROGRAM_NAME**: Value of logsource field in syslog (default: `httpd`).
 
 ### Cron configuration (runtime)
