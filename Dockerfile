@@ -1,3 +1,4 @@
+
 ARG PHP_VERSION=7.2
 FROM yiisoftware/yii2-php:${PHP_VERSION}-apache
 ARG USER_ID=2000
@@ -14,6 +15,7 @@ RUN apt-get -y update \
 # System - Set default timezone
 ENV TZ ${TZ}
 # System - Define HOME directory
+ENV USER_HOME ${USER_HOME}
 RUN mkdir -p ${USER_HOME} \
     && chgrp -R 0 ${USER_HOME} \
     && chmod -R g=u ${USER_HOME}
