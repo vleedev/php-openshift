@@ -19,10 +19,6 @@ fi
 
 echo "USER_NAME: $(id)"
 
-# Apache - User
-APACHE_RUN_USER="${USER_NAME}"
-echo "APACHE_RUN_USER: ${APACHE_RUN_USER}"
-
 # Php - Define timezone
 if [ -n "${PHP_TIMEZONE}"]; then
 	export PHP_TIMEZONE="${TZ}"
@@ -102,8 +98,32 @@ elif [ "${1}" = "loop" ]; then
 			echo "failed, exiting" 1>&2
 			exit 1
 		fi
-		sleep ${TIMEOUT:-1d}
+		echo "Wait for .. ${LOOP_TIMEOUT:-1d}"
+		sleep ${LOOP_TIMEOUT:-1d}
 	done
 else
+	# Apache - User
+	APACHE_RUN_USER="${USER_NAME}"
+	echo "APACHE_RUN_USER: ${APACHE_RUN_USER}"
+
+	# Apache - Syslog
+	if ls -1 /etc/apache2/conf-enabled/ | grep -q '^syslog.conf$'; then
+		# APACHE_SYSLOG_HOST not defined but SYSLOG_HOST is
+		if [ -n "${SYSLOG_HOST}" -a -z "${APACHE_SYSLOG_HOST}" ]; then
+			export APACHE_SYSLOG_HOST=${SYSLOG_HOST}
+		fi
+		if [ -n "${SYSLOG_PORT}" -a -z "${APACHE_SYSLOG_PORt}" ]; then
+			export APACHE_SYSLOG_PORT=${SYSLOG_PORT}
+		fi
+		echo "APACHE Syslog enabled"
+		echo "APACHE_SYSLOG_HOST: ${APACHE_SYSLOG_HOST}"
+		echo "APACHE_SYSLOG_PORT: ${APACHE_SYSLOG_PORT}"
+		echo "APACHE_PROGRAM_NAME: ${APACHE_PROGRAM_NAME}"
+	fi
+
+	echo "APACHE_REMOTE_IP_HEADER: ${APACHE_REMOTE_IP_HEADER}"
+	echo "APACHE_REMOTE_IP_TRUSTED_PROXY: ${APACHE_REMOTE_IP_TRUSTED_PROXY}"
+	echo "APACHE_REMOTE_IP_INTERNAL_PROXY: ${APACHE_REMOTE_IP_INTERNAL_PROXY}"
+
 	exec "apache2-foreground"
 fi

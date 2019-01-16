@@ -1,3 +1,4 @@
+
 ARG PHP_VERSION=5.6
 FROM yiisoftware/yii2-php:${PHP_VERSION}-apache
 ARG USER_ID=2000
@@ -67,7 +68,7 @@ RUN pecl install redis \
     && docker-php-ext-enable redis
 # Php - Yaml (for php 5.X use 1.3.2 last compatible version)
 RUN apt-get install -y --no-install-recommends libyaml-dev libyaml-0-2 \
-    && pecl install yaml-$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 6 ] && echo "2.0.0" || echo "1.3.2") \
+    && pecl install yaml-$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 6 ] && echo "2.0.4" || echo "1.3.2") \
     && docker-php-ext-enable yaml \
     && apt-get remove -y libyaml-dev
 # Php - GMP
