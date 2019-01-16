@@ -38,7 +38,7 @@ RUN a2enconf servername
 RUN sed -i -e 's/vhost_combined/combined/g' -e 's/other_vhosts_access/access/g' /etc/apache2/conf-available/other-vhosts-access-log.conf
 # Apache - Syslog Log
 ENV APACHE_SYSLOG_PORT 514
-ENV APACHE_PROGRAM_NAME httpd
+ENV APACHE_SYSLOG_PROGNAME httpd
 # Apache- Prepare to be run as non root user
 RUN mkdir -p /var/lock/apache2 \
     && chgrp -R 0 /run /var/lock/apache2 /var/log/apache2 \

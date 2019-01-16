@@ -165,7 +165,7 @@ Will be use only if you add `a2enconf syslog` in your `Dockerfile`.
 
 * **APACHE_SYSLOG_HOST**: Ip or dns of the UDP syslog server (default: `$SYSLOG_HOST`).
 * **APACHE_SYSLOG_PORT**: Port of syslog server (default: `$SYSLOG_PORT or 514`).
-* **APACHE_PROGRAM_NAME**: Value of logsource field in syslog (default: `httpd`).
+* **APACHE_SYSLOG_PROGNAME**: Value of logsource field in syslog (default: `httpd`).
 
 ### Cron configuration (runtime)
 
