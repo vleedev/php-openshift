@@ -1,5 +1,5 @@
 
-ARG PHP_VERSION=5.6
+ARG PHP_VERSION=7.2
 FROM yiisoftware/yii2-php:${PHP_VERSION}-apache
 ARG USER_ID=2000
 ARG APP_DIR=/app
