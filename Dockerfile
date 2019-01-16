@@ -14,6 +14,7 @@ RUN apt-get -y update \
 # System - Set default timezone
 ENV TZ ${TZ}
 # System - Define HOME directory
+ENV USER_HOME ${USER_HOME}
 RUN mkdir -p ${USER_HOME} \
     && chgrp -R 0 ${USER_HOME} \
     && chmod -R g=u ${USER_HOME}
