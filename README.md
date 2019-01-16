@@ -15,25 +15,38 @@ USER ${USER_ID}
 
 ## Entry-point specificity
 
-Entry-point script can run:
-
-* **Apache HTTPD** server (default behavior if no command or args)
-* **cron daemon** with environment variable properly setup
-* [Yii CLI application](https://www.yiiframework.com/doc/guide/2.0/en/tutorial-console) with your custom arguments
-* `bash`, `php` and `composer` command are also allowed
-* `loop` execute the command after 
-
-The entry-point script is also providing those helpers:
-
-## Wait for a list of service availability
-
-Before running your service you may be need to wait for other to be up and listening (example wait for you database server to be up and running on port 3306). You can provide the environment variable `WAIT_FOR_IT_LIST` with the list of service to test before starting up the application.
+The entry-point script is also providing a Wait for a list of service availability helper. Before running your command or service, you may be need to wait for other to be up and listening (example wait for you database server to be up and running on port 3306). You can provide the environment variable `WAIT_FOR_IT_LIST` with the list of service to test before starting up the application.
 
 If you want to wait for a mysql server on port 3306 and an SMTP server on port 25, just do:
 
 ```
 WAIT_FOR_IT_LIST=mysql:3306,smtp:25
 ```
+
+Entry-point can be use for the following action:
+
+### Run Apache HTTPD
+
+That the default command run if no other command is provide. Apache is running on port `8080`.
+
+### Run cron daemon
+
+If the command is `cron`.
+ 
+### Run php, bash, composer or yii commands
+
+You can provide the command with a list of arguments.
+
+### Run a command periodically.
+
+If you enter a command with `loop my_command_to_run`, the command provide will be run every **LOOP_TIMEOUT** by default `1d`. so `my_command_to_run` will be execute and when it's finish it will be run again in **LOOP_TIMEOUT**.
+
+
+
+
+
+
+
 
 ## Image Configuration at buildtime
 
@@ -150,8 +163,8 @@ With environment variables (`docker run  -e VAR_NAME=VALUE`).
 
 Will be use only if you add `a2enconf syslog` in your `Dockerfile`.
 
-* **APACHE_SYSLOG_HOST**: Ip or dns of the UDP syslog server (default: `none`).
-* **APACHE_SYSLOG_PORT**: Port of syslog server (default: `514`).
+* **APACHE_SYSLOG_HOST**: Ip or dns of the UDP syslog server (default: `$SYSLOG_HOST`).
+* **APACHE_SYSLOG_PORT**: Port of syslog server (default: `$SYSLOG_PORT or 514`).
 * **APACHE_PROGRAM_NAME**: Value of logsource field in syslog (default: `httpd`).
 
 ### Cron configuration (runtime)
