@@ -88,7 +88,7 @@ RUN apt-get install -y --no-install-recommends libssl1.0.2 libssl-dev \
     && pecl install mongodb \
     && apt-get remove -y libssl-dev
 # Php - Xdebug (for php 5.X use 2.5.5 last compatible version)
-RUN pecl install xdebug$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 6 ] && echo "-2.5.5")
+RUN pecl install xdebug$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 6 ] && echo "-2.5.5" || ([ $(echo "${PHP_VERSION}" | cut -f2 -d.) -gt 2 ] && echo "-2.7.0beta1"))
 # Php - Sockets
 RUN docker-php-ext-install sockets
 # Php - Disable extension should be enable by user if needed
