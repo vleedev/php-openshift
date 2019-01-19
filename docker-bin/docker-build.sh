@@ -38,6 +38,12 @@ if [ -d /var/www/html ]; then
     ln -s ${APP_DIR}/web/ /var/www/html
 fi
 
+# Apache - fix cache directory
+if [ -d /var/cache/apache2 ]; then
+    chgrp -R 0 /var/cache/apache2
+    chmod -R g=u /var/cache/apache2
+fi
+
 # Application - cutomization
 APP_DIR="${APP_DIR:-.}"
 echo -e "\nAPP_DIR: ${APP_DIR}\n"
