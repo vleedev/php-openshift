@@ -103,7 +103,7 @@ elif [ "${1}" = "loop" ]; then
 	done
 else
 	# Apache - User
-	APACHE_RUN_USER="${USER_NAME}"
+	export APACHE_RUN_USER="${USER_NAME}"
 	echo "APACHE_RUN_USER: ${APACHE_RUN_USER}"
 
 	# Apache - Syslog
