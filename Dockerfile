@@ -18,6 +18,9 @@ ENV USER_HOME ${USER_HOME}
 RUN mkdir -p ${USER_HOME} \
     && chgrp -R 0 ${USER_HOME} \
     && chmod -R g=u ${USER_HOME}
+# System - Add letsencrypt.org ca-certificate to system certificate (https://letsencrypt.org/docs/staging-environment/)
+RUN curl --connect-timeout 3 -fsS https://letsencrypt.org/certs/fakelerootx1.pem -o /usr/local/share/ca-certificates/fakelerootx1.crt \
+    && update-ca-certificates
 # Apache - configuration
 COPY apache2/conf-available/ /etc/apache2/conf-available/
 # Apache - Disable useless configuration
