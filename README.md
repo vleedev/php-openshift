@@ -1,8 +1,8 @@
 # PHP docker image
 
-Can be used for any PHP application inherit official [yii2-docker](https://github.com/yiisoft/yii2-docker) and based on the PHP Apache Debian version. With configuration made to be compatible with [openshift security policy](https://docs.openshift.com/container-platform/3.11/creating_images/guidelines.html). 
+This Docker image be used for any PHP application. This inherits from the official [yii2-docker](https://github.com/yiisoft/yii2-docker) image, and is based on the PHP Apache Debian version, with changes made to the configuration to ensure compatibility with the [OpenShift security policy](https://docs.openshift.com/container-platform/3.11/creating_images/guidelines.html). 
 
-If you wan't to do some modification in the image, you `Dockerfile` should look something like that:
+If you want to make modifications to the image, your `Dockerfile` should look something like this, ensuring the PHP version is updated in the FROM image descriptor:
 
 ```Dockerfile
 FROM linkbn/php-openshift:X.X
@@ -15,23 +15,23 @@ USER ${USER_ID}
 
 ## Entry-point specificity
 
-The entry-point script is also providing a Wait for a list of service availability helper. Before running your command or service, you may be need to wait for other to be up and listening (example wait for you database server to be up and running on port 3306). You can provide the environment variable `WAIT_FOR_IT_LIST` with the list of service to test before starting up the application.
+The entry-point script provides a wait for the service availability to be listed. Before running your command or service, you may be need to wait for supporting services to be up and listening (for example, waiting for you database server to be up and running on port 3306). You can provide the environment variable `WAIT_FOR_IT_LIST` with the list of service to test before starting up the application.
 
-If you want to wait for a mysql server on port 3306 and an SMTP server on port 25, just do:
+If you want to wait for a MySQL server on port 3306 and an SMTP server on port 25, just provide:
 
 ```
 WAIT_FOR_IT_LIST=mysql:3306,smtp:25
 ```
 
-Entry-point can be use for the following action:
+Entry-point can be use for the following actions:
 
 ### Run Apache HTTPD
 
-That the default command run if no other command is provide. Apache is running on port `8080`.
+This is the default command, which is run if no other commands are provided. Apache is running on port `8080`.
 
 ### Run cron daemon
 
-If the command is `cron`.
+If the `cron` command is provided.
  
 ### Run php, bash, composer or yii commands
 
@@ -39,42 +39,35 @@ You can provide the command with a list of arguments.
 
 ### Run a command periodically.
 
-If you enter a command with `loop my_command_to_run`, the command provide will be run every **LOOP_TIMEOUT** by default `1d`. so `my_command_to_run` will be execute and when it's finish it will be run again in **LOOP_TIMEOUT**.
-
-
-
-
-
-
-
+If you enter a command with `loop my_command_to_run`, the command provided will be run every **LOOP_TIMEOUT** by default `1d`, so `my_command_to_run` will be executed, and when it's finished it will be run again in **LOOP_TIMEOUT**.
 
 ## Image Configuration at buildtime
 
-With docker build arguments (`docker build --build-arg VAR_NAME=VALUE`), if you wan't to change some of them you will need to run as root in your Dockerfile inheriting from that image the script `/docker-bin/docker-build.sh`.
+With docker build arguments (`docker build --build-arg VAR_NAME=VALUE`), if you want to change some of them you will need to run the command as root in your Dockerfile inheriting from the image in the script `/docker-bin/docker-build.sh`.
 
 ### System configuration (buildtime)
 
 * **USER_ID**: Id of the user that will run the container (default: `2000`)
-* **USER_HOME**: Home diretory of the user defined by `USER_ID` (default: `/home/user`)
+* **USER_HOME**: Home directory of the user defined by `USER_ID` (default: `/home/user`)
 * **TZ**: System timezone will be used for cron and logs (default: `Europe/Paris`, done by `docker-build.sh`)
 
 ### Apache HTTPD configuration  (buildtime)
 
-Log format by default is `combined` on container stdout and apache is listening on port 8080 (http) or 8443 (https). Document root of Apache is `${APP_DIR}/web`.
+Log format by default is `combined` on container stdout, and apache is listening on port 8080 (http) or 8443 (https). Document root of Apache is `${APP_DIR}/web`.
 
 * **remoteip**: By default remoteip configuration is enabled, see runtime part of the documentation to configure it.
 * **serve-cgi-bin**: Is disabled by default.
-* **syslog**: You can enable Apache HTTPD loging to syslog, using `a2enconf syslog` in your docker buld.
+* **syslog**: You can enable Apache HTTPD logging to syslog, using `a2enconf syslog` in your docker build.
 
 ### Cron configuration (buildtime)
 
 We're using [supercronic](https://github.com/aptible/supercronic) as cron dameon. You can put your cronfile in:
-*  `/etc/cron.d/` in the normal cron format '`minute` `hour` `day of month` `month` `day of week` `user` (NB: user will not be taken in consideration in our cron is not run as root) will be merge by `docker-build.sh` script at build time.
+*  `/etc/cron.d/` in the normal cron format '`minute` `hour` `day of month` `month` `day of week` `user` (NB: user will not be taken into consideration if our cron is not run as root) will be merged by `docker-build.sh` script at build time.
 * or create the file `/etc/crontab` in [supercronic supported format](https://github.com/gorhill/cronexpr).
 
 ### Php configuration (buildtime)
 
-List of already embed modules (the one with a (`*`) are loaded by default):
+List of already embedded modules (defaults are marked with (`*`)):
 
 * bcmath (`*`)
 * exif
@@ -95,13 +88,13 @@ List of already embed modules (the one with a (`*`) are loaded by default):
 * Zend OPcache (`*`)
 * zip
 
-If you want for your specific application to enable one of them just do:
+If you want your specific application to enable one of the above:
 
 ```
 docker-php-ext-enable extension-name
 ```
 
-If the module you need is missing you can just add them in your `Dockerfile`, see [php docker](https://hub.docker.com/_/php/) image documentation for "[How to install more PHP extensions](https://github.com/docker-library/docs/blob/master/php/README.md#how-to-install-more-php-extensions)".
+If the module you need is missing you can add them in your `Dockerfile`, see [php docker](https://hub.docker.com/_/php/) image documentation for "[How to install more PHP extensions](https://github.com/docker-library/docs/blob/master/php/README.md#how-to-install-more-php-extensions)".
 
 * **PHP_VERSION**: Version of php used to do the build (default: `7.3`).
 * **PHP_OPCACHE_MAX_ACCELERATED_FILES_DEFAULT**: 
@@ -132,13 +125,7 @@ You can generate a static documentation with [daux.io](https://github.com/dauxio
 
 ### Yii configuration (buildtime)
 
-* **YII_ENV**: if set at buildtime and is set to `test` or `dev` **COMPOSER_DEV** will be set to `yes`, so composer development dependencies are installed (`gii`, `codeception`, ...).
-
-
-
-
-
-
+* **YII_ENV**: If set at buildtime and is set to `test` or `dev` **COMPOSER_DEV** will be set to `yes`, so composer development dependencies are installed (`gii`, `codeception`, ...).
 
 ## Image Configuration at runtime
 
@@ -161,9 +148,9 @@ With environment variables (`docker run  -e VAR_NAME=VALUE`).
 
 #### Apache HTTPD syslog configuration (runtime)
 
-Will be use only if you add `a2enconf syslog` in your `Dockerfile`.
+Will be used only if you add `a2enconf syslog` in your `Dockerfile`.
 
-* **APACHE_SYSLOG_HOST**: Ip or dns of the UDP syslog server (default: `$SYSLOG_HOST`).
+* **APACHE_SYSLOG_HOST**: IP or DNS of the UDP syslog server (default: `$SYSLOG_HOST`).
 * **APACHE_SYSLOG_PORT**: Port of syslog server (default: `$SYSLOG_PORT or 514`).
 * **APACHE_SYSLOG_PROGNAME**: Value of logsource field in syslog (default: `httpd`).
 
@@ -173,13 +160,13 @@ Will be use only if you add `a2enconf syslog` in your `Dockerfile`.
 
 ### PHP configuration (runtime)
 
-You can enable extension at runtime with the environment variable `PHP_ENABLE_EXTENSION`, you can provide a list of extension by separating them with with comma (`,`).
+You can enable extensions at runtime with the environment variable `PHP_ENABLE_EXTENSION`, you can provide a list of extension by separating them with with comma (`,`).
 
 ```
 PHP_ENABLE_EXTENSION=gd,exif
 ```
 
-You can override some PHP configuration setting by defining the following environment variable:
+You can override some PHP configuration setting by defining the following environment variables:
 
 #### General configuration
 
@@ -203,4 +190,4 @@ You can override some PHP configuration setting by defining the following enviro
 ### Yii configuration (runtime)
 
 * **YII_DB_MIGRATE**: Enable database schema migration at container start up if set to `true` for more detail refer to [Yii2 databse migration](https://www.yiiframework.com/doc/guide/2.0/en/db-migrations).
-* **YII_RBAC_MIGRATE**: Eanble creation/update of your list of static role and permission on your authManager at container start up if set to `true` for more detail refer to [macfly/yii2-rbac-cli](https://github.com/marty-macfly/yii2-rbac-cli).
+* **YII_RBAC_MIGRATE**: Enable creation/update of your list of static roles and permissions on your authManager at container start up if set to `true`. For more detail refer to [macfly/yii2-rbac-cli](https://github.com/marty-macfly/yii2-rbac-cli).
