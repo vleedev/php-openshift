@@ -49,7 +49,7 @@ With docker build arguments (`docker build --build-arg VAR_NAME=VALUE`), if you 
 
 * **USER_ID**: Id of the user that will run the container (default: `2000`)
 * **USER_HOME**: Home directory of the user defined by `USER_ID` (default: `/home/user`)
-* **TZ**: System timezone will be used for cron and logs (default: `Europe/Paris`, done by `docker-build.sh`)
+* **TZ**: System timezone will be used for cron and logs (default: `UTC`, done by `docker-build.sh`)
 
 ### Apache HTTPD configuration  (buildtime)
 
