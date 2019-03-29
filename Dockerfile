@@ -3,7 +3,7 @@ FROM yiisoftware/yii2-php:${PHP_VERSION}-apache
 ARG USER_ID=2000
 ARG APP_DIR=/app
 ARG USER_HOME=/home/user
-ARG TZ=Europe/Paris
+ARG TZ=UTC
 ARG YII_ENV
 # System - Application path
 ENV APP_DIR ${APP_DIR}
