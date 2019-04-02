@@ -19,7 +19,7 @@ fi
 
 # System - Add extra ca-certificate to system certificates
 if [ -n "${CA_HOSTS_LIST}" ]; then
-    for hostAndPort in ${CA_HOSTPORT_LIST}; do
+    for hostAndPort in ${CA_HOSTS_LIST}; do
         echo "Adding ca-certificate of ${hostAndPort}"
         openssl s_client -connect ${hostAndPort} -showcerts | openssl x509 -outform PEM > /usr/local/share/ca-certificates/${hostAndPort}.crt
     done
