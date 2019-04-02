@@ -4,6 +4,7 @@ ARG USER_ID=2000
 ARG APP_DIR=/app
 ARG USER_HOME=/home/user
 ARG TZ=UTC
+ARG CA_HOSTS_LIST
 ARG YII_ENV
 # System - Application path
 ENV APP_DIR ${APP_DIR}

@@ -17,6 +17,15 @@ if [ -n "${TZ}" ]; then
 	echo "$TZ" > /etc/timezone
 fi
 
+# System - Add extra ca-certificate to system certificates
+if [ -n "${CA_HOSTS_LIST}" ]; then
+    for hostAndPort in ${CA_HOSTPORT_LIST}; do
+        echo "Adding ca-certificate of ${hostAndPort}"
+        openssl s_client -connect ${hostAndPort} -showcerts | openssl x509 -outform PEM > /usr/local/share/ca-certificates/${hostAndPort}.crt
+    done
+    update-ca-certificates
+fi
+
 tz=$(ls -l "/etc/localtime" | awk '{print $NF}' | sed -e 's#/usr/share/zoneinfo/##g')
 echo "TZ: ${TZ:-default} (effective ${tz})"
 
