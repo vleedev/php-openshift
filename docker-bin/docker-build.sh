@@ -21,7 +21,7 @@ fi
 if [ -n "${CA_HOSTS_LIST}" ]; then
     for hostAndPort in ${CA_HOSTS_LIST}; do
         echo "Adding ca-certificate of ${hostAndPort}"
-        openssl s_client -connect ${hostAndPort} -showcerts | openssl x509 -outform PEM > /usr/local/share/ca-certificates/${hostAndPort}.crt
+        openssl s_client -connect ${hostAndPort} -showcerts < /dev/null | awk '/BEGIN/,/END/{ if(/BEGIN/){a++}; out="/usr/local/share/ca-certificates/'${hostAndPort}'"a".crt"; print >out}'
     done
     update-ca-certificates
 fi
