@@ -50,6 +50,7 @@ With docker build arguments (`docker build --build-arg VAR_NAME=VALUE`), if you 
 * **USER_ID**: Id of the user that will run the container (default: `2000`)
 * **USER_HOME**: Home directory of the user defined by `USER_ID` (default: `/home/user`)
 * **TZ**: System timezone will be used for cron and logs (default: `UTC`, done by `docker-build.sh`)
+* **CA_HOSTS_LIST**: List of host CA certificate to add to system CA list, example: `my-server1.local.net:443 my-server2.local.local:8443` (default: `none`, done by `docker-build.sh`)
 
 ### Apache HTTPD configuration  (buildtime)
 
