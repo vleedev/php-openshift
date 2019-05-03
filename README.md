@@ -178,6 +178,7 @@ You can override some PHP configuration setting by defining the following enviro
 * **PHP_MEMORY_LIMIT**: [memory_limit](http://php.net/manual/en/ini.core.php#ini.memory-limit) (default: `64m`)
 * **PHP_REALPATH_CACHE_SIZE**: [realpath_cache_size](http://php.net/manual/en/ini.core.php#ini.realpath-cache-size) (default: `256k`)
 * **PHP_REALPATH_CACHE_TTL**: [realpath_cache_ttl](http://php.net/manual/en/ini.core.php#ini.realpath-cache-ttl) (default: `3600`)
+* **PHP_DEFAULT_SOCKET_TIMEOUT**: [default_socket_timeout](https://www.php.net/manual/en/filesystem.configuration.php#ini.default-socket-timeout) (default: `60`)
 
 #### Opcache configuration
 
