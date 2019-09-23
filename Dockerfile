@@ -11,7 +11,7 @@ ENV APP_DIR ${APP_DIR}
 # System - Update embded package
 RUN apt-get -y update \
     && apt-get -y upgrade \
-    && apt-get install -y netcat
+    && apt-get install -y netcat runit
 # System - Set default timezone
 ENV TZ ${TZ}
 # System - Define HOME directory
@@ -19,9 +19,6 @@ ENV USER_HOME ${USER_HOME}
 RUN mkdir -p ${USER_HOME} \
     && chgrp -R 0 ${USER_HOME} \
     && chmod -R g=u ${USER_HOME}
-# System - Add letsencrypt.org ca-certificate to system certificate (https://letsencrypt.org/docs/staging-environment/)
-RUN curl --connect-timeout 3 -fsS https://letsencrypt.org/certs/fakelerootx1.pem -o /usr/local/share/ca-certificates/fakelerootx1.crt \
-    && update-ca-certificates
 # Apache - configuration
 COPY apache2/conf-available/ /etc/apache2/conf-available/
 # Apache - Disable useless configuration
@@ -45,8 +42,8 @@ ENV APACHE_SYSLOG_PORT 514
 ENV APACHE_SYSLOG_PROGNAME httpd
 # Apache- Prepare to be run as non root user
 RUN mkdir -p /var/lock/apache2 \
-    && chgrp -R 0 /run /var/lock/apache2 /var/log/apache2 \
-    && chmod -R g=u /etc/passwd /run /var/lock/apache2 /var/log/apache2
+    && chgrp -R 0 /run /var/lock/apache2 /var/log/apache2 /etc/service \
+    && chmod -R g=u /etc/passwd /run /var/lock/apache2 /var/log/apache2 /etc/service
 RUN rm -f /var/log/apache2/*.log \
     && ln -s /proc/self/fd/2 /var/log/apache2/error.log \
     && ln -s /proc/self/fd/1 /var/log/apache2/access.log
@@ -55,8 +52,8 @@ EXPOSE 8080 8443
 # Apache - default virtualhost configuration
 COPY apache2/sites-available/ /etc/apache2/sites-available/
 # Cron - use supercronic (https://github.com/aptible/supercronic)
-ENV SUPERCRONIC_VERSION=0.1.6
-ENV SUPERCRONIC_SHA1SUM=c3b78d342e5413ad39092fd3cfc083a85f5e2b75
+ENV SUPERCRONIC_VERSION=0.1.9
+ENV SUPERCRONIC_SHA1SUM=5ddf8ea26b56d4a7ff6faecdd8966610d5cb9d85
 RUN curl -sSL "https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERSION}/supercronic-linux-amd64" > "/usr/local/bin/supercronic" \
  && echo "${SUPERCRONIC_SHA1SUM}" "/usr/local/bin/supercronic" | sha1sum -c - \
  && chmod a+rx "/usr/local/bin/supercronic"
@@ -92,7 +89,7 @@ RUN apt-get install -y --no-install-recommends libssl1.0.2 libssl-dev \
     && pecl install mongodb \
     && apt-get remove -y libssl-dev
 # Php - Xdebug (for php 5.X use 2.5.5 last compatible version)
-RUN pecl install xdebug$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 6 ] && echo "-2.5.5" || ([ $(echo "${PHP_VERSION}" | cut -f2 -d.) -gt 2 ] && echo "-2.7.0beta1"))
+RUN pecl install xdebug$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 6 ] && echo "-2.5.5")
 # Php - Sockets
 RUN docker-php-ext-install sockets
 # Php - Disable extension should be enable by user if needed
