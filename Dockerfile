@@ -65,7 +65,8 @@ ENV DOC_DIR_DST doc
 # Php - update pecl protocols
 RUN pecl channel-update pecl.php.net
 # Php - Cache & Session support
-RUN pecl install redis \
+# Php - Redis (for php 5.X use 4.3.0 last compatible version)
+RUN pecl install redis$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 6 ] && echo "-4.3.0") \
     && docker-php-ext-enable redis
 # Php - Yaml (for php 5.X use 1.3.2 last compatible version)
 RUN apt-get install -y --no-install-recommends libyaml-dev libyaml-0-2 \
