@@ -99,7 +99,7 @@ elif [ "${1}" = "worker" ]; then
         echo -e "#!/bin/bash\ncd /app\nexec ${@}\n" > "/etc/service/worker_${i}/run"
         chmod +x "/etc/service/worker_${i}/run"
     done
-    runsvdir /etc/service/
+    exec runsvdir /etc/service/
 elif [ "${1}" = "loop" ]; then
 	shift
 	while true; do
