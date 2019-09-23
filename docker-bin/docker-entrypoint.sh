@@ -90,6 +90,16 @@ elif [ "${1}" = "cron" ]; then
 	exec /usr/local/bin/supercronic ${args} /etc/crontab
 elif [ "${1}" = "bash" -o "${1}" = "php" -o "${1}" = "composer" ]; then
 	exec ${@}
+elif [ "${1}" = "worker" ]; then
+    nb_worker=${2}
+    shift 2
+    for i in $(seq -w 1 ${nb_worker}); do
+        echo "Prepare worker ${i}"
+        mkdir -p "/etc/service/worker_${i}"
+        echo -e "#!/bin/bash\ncd /app\nexec ${@}\n" > "/etc/service/worker_${i}/run"
+        chmod +x "/etc/service/worker_${i}/run"
+    done
+    runsvdir /etc/service/
 elif [ "${1}" = "loop" ]; then
 	shift
 	while true; do
