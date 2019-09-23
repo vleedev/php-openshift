@@ -37,6 +37,10 @@ If the `cron` command is provided.
 
 You can provide the command with a list of arguments.
 
+### Run N instance of a command
+
+If you enter a command with `worker N my_command_to_run`, the command provided will be run in parallel **N** times, if one of the process die, it will be restarted  to keep **N** instances in paralelle.
+
 ### Run a command periodically.
 
 If you enter a command with `loop my_command_to_run`, the command provided will be run every **LOOP_TIMEOUT** by default `1d`, so `my_command_to_run` will be executed, and when it's finished it will be run again in **LOOP_TIMEOUT**.
