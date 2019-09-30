@@ -65,7 +65,8 @@ ENV DOC_DIR_DST doc
 # Php - update pecl protocols
 RUN pecl channel-update pecl.php.net
 # Php - Cache & Session support
-RUN pecl install redis \
+# Php - Redis (for php 5.X use 4.3.0 last compatible version)
+RUN pecl install redis$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 6 ] && echo "-4.3.0") \
     && docker-php-ext-enable redis
 # Php - Yaml (for php 5.X use 1.3.2 last compatible version)
 RUN apt-get install -y --no-install-recommends libyaml-dev libyaml-0-2 \
@@ -92,6 +93,8 @@ RUN apt-get install -y --no-install-recommends libssl1.0.2 libssl-dev \
 RUN pecl install xdebug$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 6 ] && echo "-2.5.5")
 # Php - Sockets
 RUN docker-php-ext-install sockets
+# Php - Igbinary (for php 5.X use 2.0.8 last compatible version)
+RUN pecl install igbinary$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 6 ] && echo "-2.0.8") && docker-php-ext-enable igbinary
 # Php - Disable extension should be enable by user if needed
 RUN rm -f /usr/local/etc/php/conf.d/docker-php-ext-exif.ini \
     /usr/local/etc/php/conf.d/docker-php-ext-gd.ini \
