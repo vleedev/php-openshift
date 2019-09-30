@@ -79,6 +79,7 @@ List of already embedded modules (defaults are marked with (`*`)):
 * gd
 * gearman
 * gmp (`*`)
+* igbinary (`*`)
 * imagick
 * intl (`*`)
 * mongodb
