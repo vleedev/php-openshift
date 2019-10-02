@@ -103,7 +103,7 @@ elif [ "${1}" = "worker" ]; then
 elif [ "${1}" = "loop" ]; then
 	shift
 	while true; do
-		exec ${@}
+		${@}
 		if [ $? -ne 0 ]; then
 			echo "failed, exiting" 1>&2
 			exit 1
