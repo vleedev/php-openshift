@@ -74,6 +74,7 @@ We're using [supercronic](https://github.com/aptible/supercronic) as cron dameon
 
 List of already embedded modules (defaults are marked with (`*`)):
 
+* apcu (`*`)
 * bcmath (`*`)
 * exif
 * gd
@@ -86,6 +87,7 @@ List of already embedded modules (defaults are marked with (`*`)):
 * pcntl
 * pdo_mysql
 * pdo_pgsql
+* redis (`*`)
 * soap
 * sockets
 * sodium (`*`)
