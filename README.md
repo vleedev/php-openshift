@@ -13,6 +13,8 @@ RUN /docker-bin/docker-build.sh
 USER ${USER_ID}
 ```
 
+You can also used the php-fpm variant that php-fpm and apache. Image `linkbn/php-openshift:X.X-fpm`
+
 ## Entry-point specificity
 
 The entry-point script provides a wait for the service availability to be listed. Before running your command or service, you may be need to wait for supporting services to be up and listening (for example, waiting for you database server to be up and running on port 3306). You can provide the environment variable `WAIT_FOR_IT_LIST` with the list of service to test before starting up the application.

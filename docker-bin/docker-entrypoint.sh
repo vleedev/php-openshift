@@ -76,8 +76,6 @@ fi
 
 if [ -n "${1}" ]; then
 	echo "Command line: ${@}"
-else
-	echo "No command line running Apache HTTPD server"
 fi
 
 if [ "${1}" = "yii" ]; then
@@ -135,5 +133,15 @@ else
 	echo "APACHE_REMOTE_IP_TRUSTED_PROXY: ${APACHE_REMOTE_IP_TRUSTED_PROXY}"
 	echo "APACHE_REMOTE_IP_INTERNAL_PROXY: ${APACHE_REMOTE_IP_INTERNAL_PROXY}"
 
-	exec "apache2-foreground"
+	if which php-fpm 2>&1 > /dev/null; then
+		echo "No command line running Apache HTTPD server with php-fpm"
+		mkdir -p /etc/service/{apache,php-fpm}
+		echo -e "#!/bin/bash\nexec apachectl -DFOREGROUND\n" > "/etc/service/apache/run"
+		echo -e "#!/bin/bash\nexec php-fpm -F\n" > "/etc/service/php-fpm/run"
+		chmod +x /etc/service/*/run
+		exec runsvdir /etc/service/
+	else
+		echo "No command line running Apache HTTPD server with mod_php"
+		exec "apache2-foreground"
+	fi
 fi
