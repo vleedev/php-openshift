@@ -1,5 +1,5 @@
 ARG PHP_VERSION=7.3
-ARG PHP_MOD=apache
+ARG PHP_MOD=fpm
 FROM yiisoftware/yii2-php:${PHP_VERSION}-${PHP_MOD}
 ARG USER_ID=2000
 ARG APP_DIR=/app
