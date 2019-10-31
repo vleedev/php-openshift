@@ -174,8 +174,6 @@ RUN pecl install apcu$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 6 ] && echo 
     docker-php-ext-enable apcu && \
     echo "apc.serializer=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini && \
     echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 # Php - Disable extension should be enable by user if needed
 RUN rm -f /usr/local/etc/php/conf.d/docker-php-ext-exif.ini \
     /usr/local/etc/php/conf.d/docker-php-ext-gd.ini \
@@ -205,7 +203,10 @@ ENV PHP_OPCACHE_MEMORY 64
 ENV PHP_OPCACHE_VALIDATE_TIMESTAMP 0
 ENV PHP_OPCACHE_REVALIDATE_FREQ 600
 # System - Clean apt
-RUN apt-get autoremove -y
+RUN apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN mkdir -p ${APP_DIR}
 RUN chmod a+rx /docker-bin/*.sh && \
     /docker-bin/docker-build.sh
 WORKDIR ${APP_DIR}
