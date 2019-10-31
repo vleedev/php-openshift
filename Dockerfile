@@ -1,5 +1,5 @@
 ARG PHP_VERSION=7.3
-ARG PHP_MOD=apache
+ARG PHP_MOD=apache-buster
 ARG PHP_BASE_IMAGE_VERSION
 FROM php:${PHP_VERSION}-${PHP_MOD}
 ENV DEBIAN_FRONTEND=noninteractive
@@ -13,15 +13,12 @@ ARG YII_ENV
 ENV APP_DIR ${APP_DIR}
 # System - Update embded package
 RUN apt-get update && \
-    apt-get -y install \
-        gnupg2 && \
-    apt-key update && \
-    apt-get update && \
     apt-get -y upgrade && \
     apt-get -y install --no-install-recommends \
             g++ \
             git \
             curl \
+            gnupg2 \
             imagemagick \
             libcurl3-dev \
             libicu-dev \
@@ -34,7 +31,6 @@ RUN apt-get update && \
             libxml2-dev \
             libzip-dev \
             zlib1g-dev \
-            default-mysql-client \
             openssh-client \
             nano \
             unzip \
@@ -160,7 +156,7 @@ RUN apt-get install -y --no-install-recommends libgmp-dev libgmpxx4ldbl && \
     docker-php-ext-install gmp && \
     apt-get remove -y libgmp-dev
 # Php - Gearman (for php 5.X use 1.1.X last compatible version)
-RUN apt-get install -y --no-install-recommends git unzip libgearman-dev libgearman8 && \
+RUN apt-get install -y --no-install-recommends git unzip libgearman-dev libgearman$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 6 ] && echo "8" || echo "7") && \
     [ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 6 ] && (git clone https://github.com/wcgallego/pecl-gearman.git && cd pecl-gearman && phpize && ./configure && make && make install && cd - && rm -rf pecl-gearman) || pecl install gearman && \
     apt-get remove -y libgearman-dev
 # Php - pcntl
