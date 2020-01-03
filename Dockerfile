@@ -104,9 +104,8 @@ RUN pecl channel-update pecl.php.net
 # Php - Install extensions required for Yii 2.0 Framework
 RUN apt-get install -y --no-install-recommends libonig$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 6 ] && echo "5" || echo "4") libonig-dev &&\
     docker-php-ext-configure gd \
-        --with-freetype-dir=/usr/include/ \
-        --with-png-dir=/usr/include/ \
-        --with-jpeg-dir=/usr/include/ && \
+        --with-freetype \
+        --with-jpeg && \
     docker-php-ext-configure bcmath && \
     docker-php-ext-install \
         soap \
