@@ -54,10 +54,20 @@ RUN curl -L https://raw.githubusercontent.com/yiisoft/yii2/master/contrib/comple
         -o /etc/bash_completion.d/yii
 # Apache - install apache and mod fcgi if php-fpm
 ENV PHPFPM_PM_MAX_CHILDREN 10
+ENV PHPFPM_PM_START_SERVERS 5
+ENV PHPFPM_PM_MIN_SPARE_SERVERS 2
+ENV PHPFPM_PM_MAX_SPARE_SERVERS 5
 RUN rm -f /etc/apache2/sites-available/000-default.conf
 RUN which apache2 2>&1 > /dev/null || (apt-get install --no-install-recommends -y apache2 && a2enmod proxy_fcgi && \
     sed -i -e 's#^export \([^=]\+\)=\(.*\)$#export \1=${\1:=\2}#' /etc/apache2/envvars && \
-    sed -i -e 's#\(listen *= *\).*$#\1/var/run/php-fpm/fpm.sock#g' -e 's#^\(user *= *\).*$#\1${APACHE_RUN_USER}#g' -e 's#^\(group *= *\).*$#\1${APACHE_RUN_GROUP}#g' -e 's#^\(pm.max_children *= *\).*$#\1${PHPFPM_PM_MAX_CHILDREN}#g' /usr/local/etc/php-fpm.d/*.conf)
+    sed -i -e 's#\(listen *= *\).*$#\1/var/run/php-fpm/fpm.sock#g' \
+        -e 's#^\(user *= *\).*$#\1${APACHE_RUN_USER}#g' \
+        -e 's#^\(group *= *\).*$#\1${APACHE_RUN_GROUP}#g' \
+        -e 's#^\(pm.max_children *= *\).*$#\1${PHPFPM_PM_MAX_CHILDREN}#g' \
+        -e 's#^\(pm.start_servers *= *\).*$#\1${PHPFPM_PM_START_SERVERS}#g' \
+        -e 's#^\(pm.min_spare_servers *= *\).*$#\1${PHPFPM_PM_MIN_SPARE_SERVERS}#g' \
+        -e 's#^\(pm.max_spare_servers *= *\).*$#\1${PHPFPM_PM_MAX_SPARE_SERVERS}#g' \
+        /usr/local/etc/php-fpm.d/*.conf)
 # All - Add configuration files
 COPY image-files/ /
 # Apache - Enable mod rewrite and headers
