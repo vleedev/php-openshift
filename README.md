@@ -170,6 +170,10 @@ Will be used only if you add `a2enconf syslog` in your `Dockerfile`.
 
 * **CRON_DEBUG**: Enable debug mode of [supercronic](https://github.com/aptible/supercronic).
 
+### PHP-FPM configuration (runtime)
+
+* **PHPFPM_PM_MAX_CHILDREN**: Change the mximum number of php-fpm worker (default: `10`).
+
 ### PHP configuration (runtime)
 
 You can enable extensions at runtime with the environment variable `PHP_ENABLE_EXTENSION`, you can provide a list of extension by separating them with with comma (`,`).
