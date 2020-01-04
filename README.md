@@ -172,7 +172,10 @@ Will be used only if you add `a2enconf syslog` in your `Dockerfile`.
 
 ### PHP-FPM configuration (runtime)
 
-* **PHPFPM_PM_MAX_CHILDREN**: Change the mximum number of php-fpm worker (default: `10`).
+* **PHPFPM_PM_MAX_CHILDREN**: Change the maximum number of php-fpm worker (default: `10`).
+* **PHPFPM_PM_START_SERVERS**: Change the number of php-fpm worker (default: `5`).
+* **PHPFPM_PM_MIN_SPARE_SERVERS**: Change the minimul number of php-fpm spare worker (default: `2`).
+* **PHPFPM_PM_MAX_SPARE_SERVERS**: Change the maximum number of php-fpm spare worker (default: `5`).
 
 ### PHP configuration (runtime)
 
