@@ -1,7 +1,9 @@
 ARG PHP_VERSION=5.6
 ARG PHP_MOD=apache
 ARG PHP_BASE_IMAGE_VERSION
-FROM php:${PHP_VERSION}-${PHP_MOD}
+
+# Need to hard code the version until this is resolved https://github.com/renovatebot/renovate/issues/5626
+FROM php:5.6-apache@sha256:0a40fd273961b99d8afe69a61a68c73c04bc0caa9de384d3b2dd9e7986eec86d
 ENV DEBIAN_FRONTEND=noninteractive
 ARG USER_ID=2000
 ARG APP_DIR=/app
