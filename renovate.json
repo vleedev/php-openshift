@@ -9,5 +9,5 @@
       "requiredStatusChecks": null
     }
   ],
-  "baseBranches": ["master", "/^[0-9.]+/"]
+  "baseBranches": ["master", "7.4.2"]
 }
