@@ -7,6 +7,10 @@
       "updateTypes": ["digest"],
       "automerge": true,
       "requiredStatusChecks": null
+    },
+    {
+      "updateTypes": ["major", "minor", "patch"],
+      "enable": false,
     }
   ],
   "baseBranches": ["master", "5.6", "5.6-fpm", "7.2", "7.2-fpm", "7.3", "7.3-fpm", "7.3.14", "7.3.14-fpm", "7.4", "7.4-fpm", "7.4.2", "7.4.2-fpm"]
