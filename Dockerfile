@@ -92,9 +92,9 @@ RUN sed -i -e 's/vhost_combined/combined/g' -e 's/other_vhosts_access/access/g' 
 ENV APACHE_SYSLOG_PORT 514
 ENV APACHE_SYSLOG_PROGNAME httpd
 # Apache- Prepare to be run as non root user
-RUN mkdir -p /var/lock/apache2 /var/run/php-fpm && \
-    chgrp -R 0 /run /var/lock/apache2 /var/log/apache2 /etc/service /var/run/php-fpm && \
-    chmod -R g=u /etc/passwd /run /var/lock/apache2 /var/log/apache2 /etc/service
+RUN mkdir -p /var/lock/apache2 /var/run/apache2 /var/run/php-fpm && \
+    chgrp -R 0 /run /var/lock/apache2 /var/log/apache2 /var/run/apache2 /etc/service /var/run/php-fpm && \
+    chmod -R g=u /etc/passwd /run /var/lock/apache2 /var/log/apache2 /var/run/apache2 /etc/service
 RUN rm -f /var/log/apache2/*.log && \
     ln -s /proc/self/fd/2 /var/log/apache2/error.log && \
     ln -s /proc/self/fd/1 /var/log/apache2/access.log
