@@ -101,8 +101,8 @@ RUN rm -f /var/log/apache2/*.log && \
 RUN sed -i -e 's/80/8080/g' -e 's/443/8443/g' /etc/apache2/ports.conf
 EXPOSE 8080 8443
 # Cron - use supercronic (https://github.com/aptible/supercronic)
-ENV SUPERCRONIC_VERSION=0.1.9
-ENV SUPERCRONIC_SHA1SUM=5ddf8ea26b56d4a7ff6faecdd8966610d5cb9d85
+ENV SUPERCRONIC_VERSION=0.1.11
+ENV SUPERCRONIC_SHA1SUM=a2e2d47078a8dafc5949491e5ea7267cc721d67c
 RUN curl -sSL "https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERSION}/supercronic-linux-amd64" > "/usr/local/bin/supercronic" && \
  echo "${SUPERCRONIC_SHA1SUM}" "/usr/local/bin/supercronic" | sha1sum -c - && \
  chmod a+rx "/usr/local/bin/supercronic"
