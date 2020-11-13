@@ -47,6 +47,13 @@ if [ 0 -ne "${PHP_ENABLE_XDEBUG:-0}" ] ; then
     PHP_ENABLE_EXTENSION="${PHP_ENABLE_EXTENSION},xdebug"
 fi
 
+# Enable pinpoint by ENV variable
+if [ 0 -ne "${PHP_ENABLE_PINPOINT:-0}" ] ; then
+    PHP_ENABLE_EXTENSION="${PHP_ENABLE_EXTENSION},pinpoint_php"
+else
+	rm -rf /etc/service.tpl/pinpoint-collector-agent
+fi
+
 # Enable extension by ENV variable
 if [ -n "${PHP_ENABLE_EXTENSION}" ] ; then
 	for extension in $(echo "${PHP_ENABLE_EXTENSION}" | sed -e 's/,/ /g'); do
@@ -143,13 +150,10 @@ else
 	if which php-fpm 2>&1 > /dev/null; then
 		echo "No command line running Apache HTTPD server with php-fpm"
 		export PHP_CGI_FIX_PATHINFO=1
-		mkdir -p /etc/service/{apache,php-fpm}
-		echo -e "#!/bin/bash\nif [ \$(id -u \${APACHE_RUN_USER}) -eq 0 ]; then\n\tunset APACHE_RUN_USER\nfi\nif [ -f /var/run/apache2/apache2.pid ]; then\n\tkill \$(cat /var/run/apache2/apache2.pid)\n\trm -f /var/run/apache2/apache2.pid\nfi\nipcrm -a\nexec apachectl -DFOREGROUND\n" > "/etc/service/apache/run"
-		echo -e "#!/bin/bash\nexec php-fpm --nodaemonize --force-stderr --allow-to-run-as-root\n" > "/etc/service/php-fpm/run"
-		chmod +x /etc/service/*/run
-		exec runsvdir /etc/service/
 	else
 		echo "No command line running Apache HTTPD server with mod_php"
-		exec "apache2-foreground"
+		rm -rf /etc/service.tpl/php-fpm
 	fi
+	mv /etc/service.tpl/* /etc/service/
+	exec runsvdir /etc/service/
 fi
