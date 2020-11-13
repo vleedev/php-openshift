@@ -47,13 +47,6 @@ if [ 0 -ne "${PHP_ENABLE_XDEBUG:-0}" ] ; then
     PHP_ENABLE_EXTENSION="${PHP_ENABLE_EXTENSION},xdebug"
 fi
 
-# Enable pinpoint by ENV variable
-if [ 0 -ne "${PHP_ENABLE_PINPOINT:-0}" ] ; then
-    PHP_ENABLE_EXTENSION="${PHP_ENABLE_EXTENSION},pinpoint_php"
-else
-	rm -rf /etc/service.tpl/pinpoint-collector-agent
-fi
-
 # Enable extension by ENV variable
 if [ -n "${PHP_ENABLE_EXTENSION}" ] ; then
 	for extension in $(echo "${PHP_ENABLE_EXTENSION}" | sed -e 's/,/ /g'); do
@@ -84,6 +77,17 @@ fi
 # Do rbac migration (add/Update/delete rbac permissions/roles)
 if [ -n "${YII_RBAC_MIGRATE}" -a "${YII_RBAC_MIGRATE}" = "true" ]; then
     php yii rbac/load rbac.yml
+fi
+
+# Enable pinpoint by ENV variable
+if [ 0 -ne "${PHP_ENABLE_PINPOINT:-0}" ] ; then
+    if docker-php-ext-enable pinpoint_php; then
+		echo "Enabled ${extension}"
+	else
+	    echo "Failed to enable ${extension}"
+	fi
+else
+	rm -rf /etc/service.tpl/pinpoint-collector-agent
 fi
 
 if [ -n "${1}" ]; then
