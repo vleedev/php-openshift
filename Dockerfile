@@ -72,6 +72,8 @@ RUN which apache2 2>&1 > /dev/null || (apt-get install --no-install-recommends -
         /usr/local/etc/php-fpm.d/*.conf)
 # All - Add configuration files
 COPY image-files/ /
+RUN chgrp -R 0 /etc/service.tpl && \
+    chmod -R g=u /etc/service.tpl
 # Apache - Enable mod rewrite and headers
 RUN a2enmod headers rewrite
 # Apache - Disable useless configuration
