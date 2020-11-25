@@ -204,6 +204,7 @@ ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.3.2
 ARG PINPOINT_COLLECTOR_AGENT_DIR=/opt/pinpoint-collector-agent
 ENV PINPOINT_COLLECTOR_AGENT_DIR ${PINPOINT_COLLECTOR_AGENT_DIR}
 ENV PINPOINT_COLLECTOR_AGENT_TYPE 1500
+ENv PINPOINT_COLLECTOR_AGENT_LOGDIR /var/log/pinpoint-collector-agent
 ENV PINPOINT_COLLECTOR_AGENT_LOGLEVEL ERROR
 ENV PINPOINT_COLLETOR_AGENT_ADDRESS unix:/var/run/pinpoint-collector-agent/collector-agent.sock
 
@@ -222,9 +223,9 @@ RUN apt-get update && \
     pip3 install -r requirements.txt && \
     pip3 install grpcio-tools && \
     python3 -m grpc_tools.protoc -I./Proto/grpc --python_out=./Proto/grpc --grpc_python_out=./Proto/grpc ./Proto/grpc/*.proto && \
-    mkdir -p /var/log/pinpoint-collector-agent /var/run/pinpoint-collector-agent && \
-    chgrp -R 0 ${PINPOINT_COLLECTOR_AGENT_DIR} /var/log/pinpoint-collector-agent /var/run/pinpoint-collector-agent && \
-    chmod -R g=u ${PINPOINT_COLLECTOR_AGENT_DIR} /var/log/pinpoint-collector-agent /var/run/pinpoint-collector-agent
+    mkdir -p ${PINPOINT_COLLECTOR_AGENT_LOGDIR} /var/run/pinpoint-collector-agent && \
+    chgrp -R 0 ${PINPOINT_COLLECTOR_AGENT_DIR} ${PINPOINT_COLLECTOR_AGENT_LOGDIR} /var/run/pinpoint-collector-agent && \
+    chmod -R g=u ${PINPOINT_COLLECTOR_AGENT_DIR} ${PINPOINT_COLLECTOR_AGENT_LOGDIR} /var/run/pinpoint-collector-agent
 # Pinpoint - Php module configuration
 ENV PINPOINT_PHP_COLLETOR_AGENT_HOST ${PINPOINT_COLLETOR_AGENT_ADDRESS}
 ENV PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS 0
