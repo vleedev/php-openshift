@@ -181,10 +181,10 @@ RUN apt-get install -y --no-install-recommends libgmp-dev libgmpxx4ldbl && \
     ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h && \
     docker-php-ext-install gmp && \
     apt-get remove -y libgmp-dev
-# Php - Gearman (for php 5.X use 1.1.X last compatible version)
-RUN apt-get install -y --no-install-recommends git unzip libgearman-dev libgearman$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 6 ] && echo "8" || echo "7") && \
+# Php - Gearman (for php 5.X use 1.1.X last compatible version, not supported on php 8)
+RUN [ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 7 ] || (apt-get install -y --no-install-recommends git unzip libgearman-dev libgearman$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 6 ] && echo "8" || echo "7") && \
     [ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 6 ] && (git clone https://github.com/wcgallego/pecl-gearman.git && cd pecl-gearman && phpize && ./configure && make && make install && cd - && rm -rf pecl-gearman) || pecl install gearman && \
-    apt-get remove -y libgearman-dev
+    apt-get remove -y libgearman-dev)
 # Php - pcntl
 RUN docker-php-ext-install pcntl
 # Php - Xdebug (for php 5.X use 2.5.5 last compatible version)
