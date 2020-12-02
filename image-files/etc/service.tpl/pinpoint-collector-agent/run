@@ -22,7 +22,7 @@ collector.grpc.discardpolicy.maxpendingthreshold=10000
 # Apache webserver port
 Web_Port=8080
 Log_Level=${PINPOINT_COLLECTOR_AGENT_LOGLEVEL:-ERROR}
-LOG_DIR=${PINPOINT_COLLECTOR_AGENT_LOGDIR:-/var/log/pinpoint-collector-agent}
+LOG_DIR=${PINPOINT_COLLECTOR_AGENT_LOGDIR}
 
 [Agent]
 Address=${PINPOINT_COLLETOR_AGENT_ADDRESS#*:}

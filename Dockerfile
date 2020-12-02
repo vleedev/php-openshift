@@ -187,6 +187,7 @@ RUN apt-get install -y --no-install-recommends git unzip libgearman-dev libgearm
 RUN docker-php-ext-install pcntl
 # Php - Xdebug (for php 5.X use 2.5.5 last compatible version)
 ENV PHP_ENABLE_XDEBUG=0
+ENV PHP_XDEBUG_MODE=debug
 RUN pecl install xdebug$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 6 ] && echo "-2.5.5")
 # Php - Sockets
 RUN docker-php-ext-install sockets
