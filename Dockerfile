@@ -149,8 +149,9 @@ RUN docker-php-ext-configure bcmath && \
         pdo_pgsql && \
     apt-get remove -y libonig-dev
 # Php - Install image magick (see http://stackoverflow.com/a/8154466/291573 for usage of `printf`)
-RUN printf "\n" | pecl install imagick && \
-    docker-php-ext-enable imagick
+# need to wait for https://github.com/Imagick/imagick/issues/358
+RUN [ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 7 ] || (printf "\n" | pecl install imagick && \
+    docker-php-ext-enable imagick)
 # Php - Mongodb with SSL
 RUN apt-get install -y --no-install-recommends libssl1.1 libssl-dev &&\
     pecl uninstall mongodb && \
