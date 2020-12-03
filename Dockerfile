@@ -202,7 +202,7 @@ RUN pecl install apcu$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 6 ] && echo 
     echo "apc.serializer=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini && \
     echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
 # Pinpoint - Collector agent
-ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.3.2
+ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.0
 ARG PINPOINT_COLLECTOR_AGENT_DIR=/opt/pinpoint-collector-agent
 ENV PINPOINT_COLLECTOR_AGENT_DIR ${PINPOINT_COLLECTOR_AGENT_DIR}
 ENV PINPOINT_COLLECTOR_AGENT_TYPE 1500
@@ -232,8 +232,8 @@ RUN apt-get update && \
 ENV PINPOINT_PHP_COLLETOR_AGENT_HOST ${PINPOINT_COLLETOR_AGENT_ADDRESS}
 ENV PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS 0
 ENV PINPOINT_PHP_TRACE_LIMIT -1
-# Pinpoint - Install pinpoint php module
-RUN apt-get update && \
+# Pinpoint - Install pinpoint php module (disalbe on php 8 waiting for https://github.com/pinpoint-apm/pinpoint-c-agent/issues/249)
+RUN [ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 7 ] || (apt-get update && \
     apt-get install -y cmake && \
     cd /opt/pinpoint-c-agent/ && \
     phpize && \
@@ -242,7 +242,7 @@ RUN apt-get update && \
     make test TESTS=src/PHP/tests/ && \
     make install && \
     make clean && \
-    rm -rf /opt/pinpoint-c-agent
+    rm -rf /opt/pinpoint-c-agent)
 # Php - Disable extension should be enable by user if needed
 RUN chmod g=u /usr/local/etc/php/conf.d/ && \
     chown root:root -R /usr/local/etc/php/conf.d && \
