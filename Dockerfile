@@ -217,11 +217,11 @@ ENV PINPOINT_COLLECTOR_GRPC_SPAN_PORT 9993
 RUN git clone https://github.com/naver/pinpoint-c-agent.git /opt/pinpoint-c-agent/ && \
     cd /opt/pinpoint-c-agent && \
     git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION} && \
-    mv collector-agent ${PINPOINT_COLLECTOR_AGENT_DIR}
+    cp -r collector-agent ${PINPOINT_COLLECTOR_AGENT_DIR}
 # Pinpoint - Install pinpoint collector agent
 RUN apt-get update && \
     apt-get install -y python3-pip && \
-    cd /opt/pinpoint-collector-agent && \
+    cd ${PINPOINT_COLLECTOR_AGENT_DIR} && \
     pip3 install -r requirements.txt && \
     pip3 install grpcio-tools && \
     python3 -m grpc_tools.protoc -I./Proto/grpc --python_out=./Proto/grpc --grpc_python_out=./Proto/grpc ./Proto/grpc/*.proto && \
@@ -232,17 +232,18 @@ RUN apt-get update && \
 ENV PINPOINT_PHP_COLLETOR_AGENT_HOST ${PINPOINT_COLLETOR_AGENT_ADDRESS}
 ENV PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS 0
 ENV PINPOINT_PHP_TRACE_LIMIT -1
-# Pinpoint - Install pinpoint php module (disalbe on php 8 waiting for https://github.com/pinpoint-apm/pinpoint-c-agent/issues/249)
-RUN [ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 7 ] || (apt-get update && \
+# Pinpoint - Install pinpoint php module (use dev branch on php 8 waiting for next release https://github.com/pinpoint-apm/pinpoint-c-agent/issues/249)
+RUN apt-get update && \
     apt-get install -y cmake && \
     cd /opt/pinpoint-c-agent/ && \
+    ([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 7 ] || git checkout dev) && \
     phpize && \
     ./configure && \
     make && \
     make test TESTS=src/PHP/tests/ && \
     make install && \
     make clean && \
-    rm -rf /opt/pinpoint-c-agent)
+    rm -rf /opt/pinpoint-c-agent
 # Php - Disable extension should be enable by user if needed
 RUN chmod g=u /usr/local/etc/php/conf.d/ && \
     chown root:root -R /usr/local/etc/php/conf.d && \
