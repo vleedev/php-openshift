@@ -202,7 +202,7 @@ RUN pecl install apcu$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 6 ] && echo 
     echo "apc.serializer=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini && \
     echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
 # Pinpoint - Collector agent
-ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.0
+ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.1
 ARG PINPOINT_COLLECTOR_AGENT_DIR=/opt/pinpoint-collector-agent
 ENV PINPOINT_COLLECTOR_AGENT_DIR ${PINPOINT_COLLECTOR_AGENT_DIR}
 ENV PINPOINT_COLLECTOR_AGENT_TYPE 1500
@@ -236,7 +236,6 @@ ENV PINPOINT_PHP_TRACE_LIMIT -1
 RUN apt-get update && \
     apt-get install -y cmake && \
     cd /opt/pinpoint-c-agent/ && \
-    ([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 7 ] || git checkout dev) && \
     phpize && \
     ./configure && \
     make && \
