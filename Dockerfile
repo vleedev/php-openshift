@@ -220,7 +220,7 @@ RUN git clone https://github.com/naver/pinpoint-c-agent.git /opt/pinpoint-c-agen
     cp -r collector-agent ${PINPOINT_COLLECTOR_AGENT_DIR}
 # Pinpoint - Install pinpoint collector agent
 RUN apt-get update && \
-    apt-get install -y python3-pip && \
+    apt-get install -y --no-install-recommends python3-pip && \
     cd ${PINPOINT_COLLECTOR_AGENT_DIR} && \
     pip3 install -r requirements.txt && \
     pip3 install grpcio-tools && \
@@ -232,9 +232,9 @@ RUN apt-get update && \
 ENV PINPOINT_PHP_COLLETOR_AGENT_HOST ${PINPOINT_COLLETOR_AGENT_ADDRESS}
 ENV PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS 0
 ENV PINPOINT_PHP_TRACE_LIMIT -1
-# Pinpoint - Install pinpoint php module (use dev branch on php 8 waiting for next release https://github.com/pinpoint-apm/pinpoint-c-agent/issues/249)
+# Pinpoint - Install pinpoint php module
 RUN apt-get update && \
-    apt-get install -y cmake && \
+    apt-get install -y --no-install-recommends cmake && \
     cd /opt/pinpoint-c-agent/ && \
     phpize && \
     ./configure && \
