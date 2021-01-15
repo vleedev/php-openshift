@@ -219,7 +219,7 @@ RUN git clone https://github.com/naver/pinpoint-c-agent.git /opt/pinpoint-c-agen
     cp -r collector-agent ${PINPOINT_COLLECTOR_AGENT_DIR}
 # Pinpoint - Install pinpoint collector agent
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends python3-pip && \
+    apt-get install -y --no-install-recommends python3 python3-dev python3-pip python3-setuptools python3-wheel && \
     cd ${PINPOINT_COLLECTOR_AGENT_DIR} && \
     pip3 install -r requirements.txt && \
     pip3 install grpcio-tools && \
