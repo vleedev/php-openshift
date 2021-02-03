@@ -212,7 +212,8 @@ RUN apt-get update \
 # Php - Gearman (not supported on php 8)
 # hadolint ignore=DL3003,DL3008
 RUN if [ "${PHP_VERSION%%.*}" -eq 7 ]; then \
-        apt-get install -y --no-install-recommends git unzip libgearman-dev libgearman8 \
+        apt-get update \
+            && apt-get install -y --no-install-recommends git unzip libgearman-dev libgearman8 \
             && git clone https://github.com/wcgallego/pecl-gearman.git \
             && cd pecl-gearman \
             && phpize \
