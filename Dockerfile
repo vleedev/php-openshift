@@ -47,9 +47,9 @@ RUN apt-get update \
 ENV TZ ${TZ}
 # System - Define HOME directory
 ENV USER_HOME ${USER_HOME}
-RUN mkdir -p ${USER_HOME} && \
-    chgrp -R 0 ${USER_HOME} && \
-    chmod -R g=u ${USER_HOME}
+RUN mkdir -p ${USER_HOME} \
+    && chgrp -R 0 ${USER_HOME} \
+    && chmod -R g=u ${USER_HOME}
 # System - Set path
 ENV PATH=/app:/app/vendor/bin:/root/.composer/vendor/bin:$PATH
 # System - Set terminal type
@@ -63,27 +63,31 @@ ENV PHPFPM_PM_START_SERVERS 5
 ENV PHPFPM_PM_MIN_SPARE_SERVERS 2
 ENV PHPFPM_PM_MAX_SPARE_SERVERS 5
 RUN rm -f /etc/apache2/sites-available/000-default.conf
-# hadolint ignore=SC2016,DL3008, SC1089
-RUN if which apache2 > /dev/null 2>&1; then \
+# hadolint ignore=DL3008, SC1089
+RUN if ! which apache2 > /dev/null 2>&1; then \
         apt-get update \
             && apt-get install --no-install-recommends -y apache2 \
             && apt-get clean \
             && rm -rf /var/lib/apt/lists/* ; \
         a2enmod proxy_fcgi; \
-    fi \
-    && sed -i -e 's#^export \([^=]\+\)=\(.*\)$#export \1=${\1:=\2}#' /etc/apache2/envvars \
-RUN sed -i -e 's#\(listen *= *\).*$#\1/var/run/php-fpm/fpm.sock#g' \
-        -e 's#^\(user *= *\).*$#\1${APACHE_RUN_USER}#g' \
-        -e 's#^\(group *= *\).*$#\1${APACHE_RUN_GROUP}#g' \
-        -e 's#^\(pm.max_children *= *\).*$#\1${PHPFPM_PM_MAX_CHILDREN}#g' \
-        -e 's#^\(pm.start_servers *= *\).*$#\1${PHPFPM_PM_START_SERVERS}#g' \
-        -e 's#^\(pm.min_spare_servers *= *\).*$#\1${PHPFPM_PM_MIN_SPARE_SERVERS}#g' \
-        -e 's#^\(pm.max_spare_servers *= *\).*$#\1${PHPFPM_PM_MAX_SPARE_SERVERS}#g' \
-        /usr/local/etc/php-fpm.d/*.conf)
+    fi
+# hadolint ignore=SC2016
+RUN sed -i -e 's#^export \([^=]\+\)=\(.*\)$#export \1=${\1:=\2}#' /etc/apache2/envvars
+# hadolint ignore=SC2016
+RUN if [ -d /usr/local/etc/php-fpm.d ]; then \
+        sed -i -e 's#\(listen *= *\).*$#\1/var/run/php-fpm/fpm.sock#g' \
+            -e 's#^\(user *= *\).*$#\1${APACHE_RUN_USER}#g' \
+            -e 's#^\(group *= *\).*$#\1${APACHE_RUN_GROUP}#g' \
+            -e 's#^\(pm.max_children *= *\).*$#\1${PHPFPM_PM_MAX_CHILDREN}#g' \
+            -e 's#^\(pm.start_servers *= *\).*$#\1${PHPFPM_PM_START_SERVERS}#g' \
+            -e 's#^\(pm.min_spare_servers *= *\).*$#\1${PHPFPM_PM_MIN_SPARE_SERVERS}#g' \
+            -e 's#^\(pm.max_spare_servers *= *\).*$#\1${PHPFPM_PM_MAX_SPARE_SERVERS}#g' \
+            /usr/local/etc/php-fpm.d/*.conf ; \
+    fi
 # All - Add configuration files
 COPY image-files/ /
-RUN chgrp -R 0 /etc/service.tpl && \
-    chmod -R g=u /etc/service.tpl
+RUN chgrp -R 0 /etc/service.tpl \
+    && chmod -R g=u /etc/service.tpl
 # Apache - Enable mod rewrite and headers
 RUN a2enmod headers rewrite
 # Apache - Disable useless configuration
@@ -106,12 +110,12 @@ RUN sed -i -e 's/vhost_combined/combined/g' -e 's/other_vhosts_access/access/g' 
 ENV APACHE_SYSLOG_PORT 514
 ENV APACHE_SYSLOG_PROGNAME httpd
 # Apache- Prepare to be run as non root user
-RUN mkdir -p /var/lock/apache2 /var/run/apache2 /var/run/php-fpm && \
-    chgrp -R 0 /run /var/lock/apache2 /var/log/apache2 /var/run/apache2 /etc/service /var/run/php-fpm && \
-    chmod -R g=u /etc/passwd /run /var/lock/apache2 /var/log/apache2 /var/run/apache2 /etc/service
-RUN rm -f /var/log/apache2/*.log && \
-    ln -s /proc/self/fd/2 /var/log/apache2/error.log && \
-    ln -s /proc/self/fd/1 /var/log/apache2/access.log
+RUN mkdir -p /var/lock/apache2 /var/run/apache2 /var/run/php-fpm \
+    && chgrp -R 0 /run /var/lock/apache2 /var/log/apache2 /var/run/apache2 /etc/service /var/run/php-fpm \
+    && chmod -R g=u /etc/passwd /run /var/lock/apache2 /var/log/apache2 /var/run/apache2 /etc/service
+RUN rm -f /var/log/apache2/*.log \
+    && ln -s /proc/self/fd/2 /var/log/apache2/error.log \
+    && ln -s /proc/self/fd/1 /var/log/apache2/access.log
 RUN sed -i -e 's/80/8080/g' -e 's/443/8443/g' /etc/apache2/ports.conf
 EXPOSE 8080 8443
 # Cron - use supercronic (https://github.com/aptible/supercronic)
@@ -141,11 +145,9 @@ RUN pecl channel-update pecl.php.net
 # hadolint ignore=DL3008
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libonig5 libonig-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg
-RUN docker-php-ext-configure bcmath && \
-    docker-php-ext-install \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-configure bcmath \
+    && docker-php-ext-install \
         soap \
         zip \
         curl \
@@ -157,8 +159,10 @@ RUN docker-php-ext-configure bcmath && \
         mbstring \
         opcache \
         pdo_mysql \
-        pdo_pgsql && \
-    apt-get remove -y libonig-dev
+        pdo_pgsql \
+    && apt-get remove -y libonig-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 # Php - Install image magick (see http://stackoverflow.com/a/8154466/291573 for usage of `printf`)
 # need to wait for https://github.com/Imagick/imagick/issues/358
 RUN if [ "${PHP_VERSION%%.*}" -lt 7 ]; then \
@@ -181,13 +185,13 @@ RUN chmod 700 \
 # Composer - Install composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN curl -sS https://getcomposer.org/installer | php -- \
-        --filename=composer.phar \
-        --install-dir=/usr/local/bin && \
-    chmod a+rx "/usr/local/bin/composer"
+        --filename=composer \
+        --install-dir=/usr/local/bin \
+    && chmod a+rx "/usr/local/bin/composer"
 # Php - Cache & Session support
 # Php - Redis
-RUN pecl install redis && \
-    docker-php-ext-enable redis
+RUN pecl install redis \
+    && docker-php-ext-enable redis
 # Php - Yaml
 # hadolint ignore=DL3008
 RUN apt-get update \
@@ -207,6 +211,7 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 # Php - Gearman (not supported on php 8)
+# hadolint ignore=DL3003,DL3008
 RUN if [ "${PHP_VERSION%%.*}" -eq 7 ]; then \
         apt-get install -y --no-install-recommends git unzip libgearman-dev libgearman8 \
             && git clone https://github.com/wcgallego/pecl-gearman.git \
@@ -217,7 +222,7 @@ RUN if [ "${PHP_VERSION%%.*}" -eq 7 ]; then \
             && make install \
             && cd - \
             && rm -rf pecl-gearman \
-            && apt-get remove -y libgearman-dev
+            && apt-get remove -y libgearman-dev \
             && apt-get clean \
             && rm -rf /var/lib/apt/lists/*; \
     fi
@@ -230,13 +235,13 @@ RUN pecl install xdebug
 # Php - Sockets
 RUN docker-php-ext-install sockets
 # Php - Igbinary
-RUN pecl install igbinary && \
-    docker-php-ext-enable igbinary && \
-    echo "session.serialize_handler=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini
-RUN pecl install apcu && \
-    docker-php-ext-enable apcu && \
-    echo "apc.serializer=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini && \
-    echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
+RUN pecl install igbinary \
+    && docker-php-ext-enable igbinary \
+    && echo "session.serialize_handler=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini
+RUN pecl install apcu \
+    && docker-php-ext-enable apcu \
+    && echo "apc.serializer=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini \
+    && echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
 # Pinpoint - Collector agent
 ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.2
 ARG PINPOINT_COLLECTOR_AGENT_DIR=/opt/pinpoint-collector-agent
@@ -250,59 +255,64 @@ ENV PINPOINT_COLLECTOR_GRPC_AGENT_PORT 9991
 ENV PINPOINT_COLLECTOR_GRPC_STAT_PORT 9992
 ENV PINPOINT_COLLECTOR_GRPC_SPAN_PORT 9993
 # Pinpoint - Fetch source
-RUN git clone https://github.com/naver/pinpoint-c-agent.git /opt/pinpoint-c-agent/ && \
-    cd /opt/pinpoint-c-agent && \
-    git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION} && \
-    cp -r collector-agent ${PINPOINT_COLLECTOR_AGENT_DIR}
+# hadolint ignore=DL3003
+RUN git clone https://github.com/naver/pinpoint-c-agent.git /opt/pinpoint-c-agent/ \
+    && cd /opt/pinpoint-c-agent \
+    && git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION} \
+    && cp -r collector-agent ${PINPOINT_COLLECTOR_AGENT_DIR}
 # Pinpoint - Install pinpoint collector agent
-# hadolint ignore=DL3008
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends python3 python3-dev python3-pip python3-setuptools python3-wheel && \
-    cd ${PINPOINT_COLLECTOR_AGENT_DIR} && \
-    pip3 install -r requirements.txt && \
-    pip3 install grpcio-tools && \
-    python3 -m grpc_tools.protoc -I./Proto/grpc --python_out=./Proto/grpc --grpc_python_out=./Proto/grpc ./Proto/grpc/*.proto && \
-    mkdir -p ${PINPOINT_COLLECTOR_AGENT_LOGDIR} /var/run/pinpoint-collector-agent && \
-    chgrp -R 0 ${PINPOINT_COLLECTOR_AGENT_DIR} ${PINPOINT_COLLECTOR_AGENT_LOGDIR} /var/run/pinpoint-collector-agent && \
-    chmod -R g=u ${PINPOINT_COLLECTOR_AGENT_DIR} ${PINPOINT_COLLECTOR_AGENT_LOGDIR} /var/run/pinpoint-collector-agent
+# hadolint ignore=DL3003,DL3008,DL3013
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 python3-dev python3-pip python3-setuptools python3-wheel \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && cd ${PINPOINT_COLLECTOR_AGENT_DIR} \
+    && pip3 install -r requirements.txt \
+    && pip3 install grpcio-tools \
+    && python3 -m grpc_tools.protoc -I./Proto/grpc --python_out=./Proto/grpc --grpc_python_out=./Proto/grpc ./Proto/grpc/*.proto \
+    && mkdir -p ${PINPOINT_COLLECTOR_AGENT_LOGDIR} /var/run/pinpoint-collector-agent \
+    && chgrp -R 0 ${PINPOINT_COLLECTOR_AGENT_DIR} ${PINPOINT_COLLECTOR_AGENT_LOGDIR} /var/run/pinpoint-collector-agent \
+    && chmod -R g=u ${PINPOINT_COLLECTOR_AGENT_DIR} ${PINPOINT_COLLECTOR_AGENT_LOGDIR} /var/run/pinpoint-collector-agent
 # Pinpoint - Php module configuration
 ENV PINPOINT_PHP_COLLETOR_AGENT_HOST ${PINPOINT_COLLETOR_AGENT_ADDRESS}
 ENV PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS 0
 ENV PINPOINT_PHP_TRACE_LIMIT -1
 # Pinpoint - Install pinpoint php module
-# hadolint ignore=DL3008
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends cmake && \
-    cd /opt/pinpoint-c-agent/ && \
-    phpize && \
-    ./configure && \
-    make && \
-    make test TESTS=src/PHP/tests/ && \
-    make install && \
-    make clean && \
-    rm -rf /opt/pinpoint-c-agent
+# hadolint ignore=DL3003,DL3008
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends cmake \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && cd /opt/pinpoint-c-agent/ \
+    && phpize \
+    && ./configure \
+    && make \
+    && make test TESTS=src/PHP/tests/ \
+    && make install \
+    && make clean \
+    && rm -rf /opt/pinpoint-c-agent
 # Php - Disable extension should be enable by user if needed
-RUN chmod g=u /usr/local/etc/php/conf.d/ && \
-    chown root:root -R /usr/local/etc/php/conf.d && \
-    rm -f /usr/local/etc/php/conf.d/docker-php-ext-exif.ini \
-    /usr/local/etc/php/conf.d/docker-php-ext-gd.ini \
-    /usr/local/etc/php/conf.d/docker-php-ext-gearman.ini \
-    /usr/local/etc/php/conf.d/docker-php-ext-imagick.ini \
-    /usr/local/etc/php/conf.d/docker-php-ext-mongodb.ini \
-    /usr/local/etc/php/conf.d/docker-php-ext-pcntl.ini \
-    /usr/local/etc/php/conf.d/docker-php-ext-pdo_mysql.ini \
-    /usr/local/etc/php/conf.d/docker-php-ext-pdo_pgsql.ini \
-    /usr/local/etc/php/conf.d/docker-php-ext-soap.ini \
-    /usr/local/etc/php/conf.d/docker-php-ext-sockets.ini \
-    /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    /usr/local/etc/php/conf.d/docker-php-ext-zip.ini
+RUN chmod g=u /usr/local/etc/php/conf.d/ \
+    && chown root:root -R /usr/local/etc/php/conf.d \
+    && rm -f /usr/local/etc/php/conf.d/docker-php-ext-exif.ini \
+            /usr/local/etc/php/conf.d/docker-php-ext-gd.ini \
+            /usr/local/etc/php/conf.d/docker-php-ext-gearman.ini \
+            /usr/local/etc/php/conf.d/docker-php-ext-imagick.ini \
+            /usr/local/etc/php/conf.d/docker-php-ext-mongodb.ini \
+            /usr/local/etc/php/conf.d/docker-php-ext-pcntl.ini \
+            /usr/local/etc/php/conf.d/docker-php-ext-pdo_mysql.ini \
+            /usr/local/etc/php/conf.d/docker-php-ext-pdo_pgsql.ini \
+            /usr/local/etc/php/conf.d/docker-php-ext-soap.ini \
+            /usr/local/etc/php/conf.d/docker-php-ext-sockets.ini \
+            /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+            /usr/local/etc/php/conf.d/docker-php-ext-zip.ini
 # System - Clean apt
-RUN apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 RUN mkdir -p ${APP_DIR}
-RUN chmod a+rx /docker-bin/*.sh && \
-    /docker-bin/docker-build.sh
+RUN chmod a+rx /docker-bin/*.sh \
+    && /docker-bin/docker-build.sh
 WORKDIR ${APP_DIR}
 USER ${USER_ID}
 ENTRYPOINT ["/docker-bin/docker-entrypoint.sh"]
