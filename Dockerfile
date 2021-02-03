@@ -14,9 +14,9 @@ ARG YII_ENV
 # System - Application path
 ENV APP_DIR ${APP_DIR}
 # System - Update embded package
-RUN apt-get update && \
-    apt-get -y upgrade && \
-    apt-get -y install --no-install-recommends \
+# hadolint ignore=DL3008
+RUN apt-get update \
+    && apt-get -y install --no-install-recommends \
             g++ \
             git \
             curl \
@@ -39,7 +39,9 @@ RUN apt-get update && \
             libcurl4-openssl-dev \
             libssl-dev \
             netcat \
-            runit
+            runit \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 # System - Set default timezone
 ENV TZ ${TZ}
 # System - Define HOME directory
@@ -60,9 +62,16 @@ ENV PHPFPM_PM_START_SERVERS 5
 ENV PHPFPM_PM_MIN_SPARE_SERVERS 2
 ENV PHPFPM_PM_MAX_SPARE_SERVERS 5
 RUN rm -f /etc/apache2/sites-available/000-default.conf
-RUN which apache2 2>&1 > /dev/null || (apt-get install --no-install-recommends -y apache2 && a2enmod proxy_fcgi && \
-    sed -i -e 's#^export \([^=]\+\)=\(.*\)$#export \1=${\1:=\2}#' /etc/apache2/envvars && \
-    sed -i -e 's#\(listen *= *\).*$#\1/var/run/php-fpm/fpm.sock#g' \
+# hadolint ignore=SC2016,DL3008
+RUN if which apache2 > /dev/null 2>&1; then \
+        apt-get update \
+            && apt-get install --no-install-recommends -y apache2 \
+            && apt-get clean \
+            && rm -rf /var/lib/apt/lists/* ; \
+        a2enmod proxy_fcgi; \
+    fi \
+    && sed -i -e 's#^export \([^=]\+\)=\(.*\)$#export \1=${\1:=\2}#' /etc/apache2/envvars \
+RUN sed -i -e 's#\(listen *= *\).*$#\1/var/run/php-fpm/fpm.sock#g' \
         -e 's#^\(user *= *\).*$#\1${APACHE_RUN_USER}#g' \
         -e 's#^\(group *= *\).*$#\1${APACHE_RUN_GROUP}#g' \
         -e 's#^\(pm.max_children *= *\).*$#\1${PHPFPM_PM_MAX_CHILDREN}#g' \
