@@ -23,6 +23,7 @@ collector.grpc.discardpolicy.maxpendingthreshold=10000
 Web_Port=8080
 Log_Level=${PINPOINT_COLLECTOR_AGENT_LOGLEVEL:-ERROR}
 LOG_DIR=${PINPOINT_COLLECTOR_AGENT_LOGDIR}
+Isdocker=${PINPOINT_COLLECTOR_AGENT_ISDOCKER:-true} 
 
 [Agent]
 Address=${PINPOINT_COLLETOR_AGENT_ADDRESS#*:}
