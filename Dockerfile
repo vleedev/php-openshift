@@ -120,9 +120,6 @@ ENV SUPERCRONIC_SHA1SUM=a2e2d47078a8dafc5949491e5ea7267cc721d67c
 ADD https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERSION}/supercronic-linux-amd64 /usr/local/bin/supercronic
 RUN echo "${SUPERCRONIC_SHA1SUM}" "/usr/local/bin/supercronic" | sha1sum -c - \
     && chmod a+rx "/usr/local/bin/supercronic"
-ENV DOC_GENERATE yes
-ENV DOC_DIR_SRC docs
-ENV DOC_DIR_DST doc
 # Php - Set default php.ini config variables (can be override at runtime)
 ENV PHP_CGI_FIX_PATHINFO 0
 ENV PHP_UPLOAD_MAX_FILESIZE 2m
