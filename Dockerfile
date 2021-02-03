@@ -13,6 +13,7 @@ ARG CA_HOSTS_LIST
 ARG YII_ENV
 # System - Application path
 ENV APP_DIR ${APP_DIR}
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # System - Update embded package
 # hadolint ignore=DL3008
 RUN apt-get update \
@@ -62,7 +63,7 @@ ENV PHPFPM_PM_START_SERVERS 5
 ENV PHPFPM_PM_MIN_SPARE_SERVERS 2
 ENV PHPFPM_PM_MAX_SPARE_SERVERS 5
 RUN rm -f /etc/apache2/sites-available/000-default.conf
-# hadolint ignore=SC2016,DL3008
+# hadolint ignore=SC2016,DL3008, SC1089
 RUN if which apache2 > /dev/null 2>&1; then \
         apt-get update \
             && apt-get install --no-install-recommends -y apache2 \
@@ -116,9 +117,9 @@ EXPOSE 8080 8443
 # Cron - use supercronic (https://github.com/aptible/supercronic)
 ENV SUPERCRONIC_VERSION=0.1.11
 ENV SUPERCRONIC_SHA1SUM=a2e2d47078a8dafc5949491e5ea7267cc721d67c
-RUN curl -sSL "https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERSION}/supercronic-linux-amd64" > "/usr/local/bin/supercronic" && \
- echo "${SUPERCRONIC_SHA1SUM}" "/usr/local/bin/supercronic" | sha1sum -c - && \
- chmod a+rx "/usr/local/bin/supercronic"
+ADD https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERSION}/supercronic-linux-amd64 /usr/local/bin/supercronic
+RUN echo "${SUPERCRONIC_SHA1SUM}" "/usr/local/bin/supercronic" | sha1sum -c - \
+    && chmod a+rx "/usr/local/bin/supercronic"
 ENV DOC_GENERATE yes
 ENV DOC_DIR_SRC docs
 ENV DOC_DIR_DST doc
@@ -140,8 +141,12 @@ ENV PHP_OPCACHE_REVALIDATE_FREQ 600
 # Php - update pecl protocols
 RUN pecl channel-update pecl.php.net
 # Php - Install extensions required for Yii 2.0 Framework
-RUN apt-get install -y --no-install-recommends libonig$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 6 ] && echo "5" || echo "4") libonig-dev &&\
-    docker-php-ext-configure gd $([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 6 -a $(echo "${PHP_VERSION}" | cut -f2 -d.) -gt 3 -o $(echo "${PHP_VERSION}" | cut -f1 -d.) -eq 8 ] && echo "--with-freetype --with-jpeg" || echo "--with-freetype-dir=/usr/include/ --with-png-dir=/usr/include/ --with-jpeg-dir=/usr/include/")
+# hadolint ignore=DL3008
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libonig5 libonig-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-configure bcmath && \
     docker-php-ext-install \
         soap \
@@ -159,13 +164,19 @@ RUN docker-php-ext-configure bcmath && \
     apt-get remove -y libonig-dev
 # Php - Install image magick (see http://stackoverflow.com/a/8154466/291573 for usage of `printf`)
 # need to wait for https://github.com/Imagick/imagick/issues/358
-RUN [ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 7 ] || (printf "\n" | pecl install imagick && \
-    docker-php-ext-enable imagick)
+RUN if [ "${PHP_VERSION%%.*}" -lt 7 ]; then \
+        printf "\n" | pecl install imagick; \
+        docker-php-ext-enable imagick; \
+    fi
 # Php - Mongodb with SSL
-RUN apt-get install -y --no-install-recommends libssl1.1 libssl-dev &&\
-    pecl uninstall mongodb && \
-    pecl install mongodb && \
-    apt-get remove -y libssl-dev
+# hadolint ignore=DL3008
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libssl1.1 libssl-dev \
+    && pecl uninstall mongodb \
+    && pecl install mongodb \
+    && apt-get remove -y libssl-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
 # Add GITHUB_API_TOKEN support for composer
 RUN chmod 700 \
         /usr/local/bin/docker-php-entrypoint \
@@ -177,41 +188,60 @@ RUN curl -sS https://getcomposer.org/installer | php -- \
         --install-dir=/usr/local/bin && \
     chmod a+rx "/usr/local/bin/composer"
 # Php - Cache & Session support
-# Php - Redis (for php 5.X use 4.3.0 last compatible version)
-RUN pecl install redis$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 6 ] && echo "-4.3.0") && \
+# Php - Redis
+RUN pecl install redis && \
     docker-php-ext-enable redis
-# Php - Yaml (for php 5.X use 1.3.2 last compatible version)
-RUN apt-get install -y --no-install-recommends libyaml-dev libyaml-0-2 && \
-    pecl install yaml$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 6 ] && echo "-1.3.2") && \
-    docker-php-ext-enable yaml && \
-    apt-get remove -y libyaml-dev
+# Php - Yaml
+# hadolint ignore=DL3008
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libyaml-dev libyaml-0-2 \
+    && pecl install yaml \
+    && docker-php-ext-enable yaml \
+    && apt-get remove -y libyaml-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 # Php - GMP
-RUN apt-get install -y --no-install-recommends libgmp-dev libgmpxx4ldbl && \
-    ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h && \
-    docker-php-ext-install gmp && \
-    apt-get remove -y libgmp-dev
-# Php - Gearman (for php 5.X use 1.1.X last compatible version, not supported on php 8)
-RUN [ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 7 ] || (apt-get install -y --no-install-recommends git unzip libgearman-dev libgearman$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 6 ] && echo "8" || echo "7") && \
-    [ $(echo "${PHP_VERSION}" | cut -f1 -d.) -gt 6 ] && (git clone https://github.com/wcgallego/pecl-gearman.git && cd pecl-gearman && phpize && ./configure && make && make install && cd - && rm -rf pecl-gearman) || pecl install gearman && \
-    apt-get remove -y libgearman-dev)
+# hadolint ignore=DL3008
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgmp-dev libgmpxx4ldbl \
+    && ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h \
+    && docker-php-ext-install gmp \
+    && apt-get remove -y libgmp-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+# Php - Gearman (not supported on php 8)
+RUN if [ "${PHP_VERSION%%.*}" -eq 7 ]; then \
+        apt-get install -y --no-install-recommends git unzip libgearman-dev libgearman8 \
+            && git clone https://github.com/wcgallego/pecl-gearman.git \
+            && cd pecl-gearman \
+            && phpize \
+            && ./configure \
+            && make \
+            && make install \
+            && cd - \
+            && rm -rf pecl-gearman \
+            && apt-get remove -y libgearman-dev
+            && apt-get clean \
+            && rm -rf /var/lib/apt/lists/*; \
+    fi
 # Php - pcntl
 RUN docker-php-ext-install pcntl
-# Php - Xdebug (for php 5.X use 2.5.5 last compatible version)
+# Php - Xdebug
 ENV PHP_ENABLE_XDEBUG=0
 ENV PHP_XDEBUG_MODE=debug
-RUN pecl install xdebug$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 6 ] && echo "-2.5.5")
+RUN pecl install xdebug
 # Php - Sockets
 RUN docker-php-ext-install sockets
-# Php - Igbinary (for php 5.X use 2.0.8 last compatible version)
-RUN pecl install igbinary$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 6 ] && echo "-2.0.8") && \
+# Php - Igbinary
+RUN pecl install igbinary && \
     docker-php-ext-enable igbinary && \
     echo "session.serialize_handler=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini
-RUN pecl install apcu$([ $(echo "${PHP_VERSION}" | cut -f1 -d.) -lt 6 ] && echo "-4.0.11") && \
+RUN pecl install apcu && \
     docker-php-ext-enable apcu && \
     echo "apc.serializer=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini && \
     echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
 # Pinpoint - Collector agent
-ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.1
+ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.2
 ARG PINPOINT_COLLECTOR_AGENT_DIR=/opt/pinpoint-collector-agent
 ENV PINPOINT_COLLECTOR_AGENT_DIR ${PINPOINT_COLLECTOR_AGENT_DIR}
 ENV PINPOINT_COLLECTOR_AGENT_TYPE 1500
@@ -228,6 +258,7 @@ RUN git clone https://github.com/naver/pinpoint-c-agent.git /opt/pinpoint-c-agen
     git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION} && \
     cp -r collector-agent ${PINPOINT_COLLECTOR_AGENT_DIR}
 # Pinpoint - Install pinpoint collector agent
+# hadolint ignore=DL3008
 RUN apt-get update && \
     apt-get install -y --no-install-recommends python3 python3-dev python3-pip python3-setuptools python3-wheel && \
     cd ${PINPOINT_COLLECTOR_AGENT_DIR} && \
@@ -242,6 +273,7 @@ ENV PINPOINT_PHP_COLLETOR_AGENT_HOST ${PINPOINT_COLLETOR_AGENT_ADDRESS}
 ENV PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS 0
 ENV PINPOINT_PHP_TRACE_LIMIT -1
 # Pinpoint - Install pinpoint php module
+# hadolint ignore=DL3008
 RUN apt-get update && \
     apt-get install -y --no-install-recommends cmake && \
     cd /opt/pinpoint-c-agent/ && \
