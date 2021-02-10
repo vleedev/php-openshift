@@ -10,6 +10,10 @@ ARG USER_HOME=/home/user
 ARG TZ=UTC
 ARG CA_HOSTS_LIST
 ARG YII_ENV
+# Support for composer API token for Github and Gitlab
+ARG GITHUB_API_TOKEN
+ARG GITLAB_API_HOST
+ARG GITLAB_API_TOKEN
 # System - Application path
 ENV APP_DIR ${APP_DIR}
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -177,16 +181,12 @@ RUN apt-get update \
     && apt-get remove -y libssl-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-# Add GITHUB_API_TOKEN & GITLAB_API_TOKEN support for composer
-RUN chmod 700 \
-        /usr/local/bin/docker-php-entrypoint \
-        /usr/local/bin/composer
 # Composer - Install composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN curl -sS https://getcomposer.org/installer | php -- \
-        --filename=composer \
+        --filename=composer.phar \
         --install-dir=/usr/local/bin \
-    && chmod a+rx "/usr/local/bin/composer"
+    && chmod a+rx "/usr/local/bin/composer.phar"
 # Php - Cache & Session support
 # Php - Redis
 RUN pecl install redis \
