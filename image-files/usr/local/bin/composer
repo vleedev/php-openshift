@@ -7,4 +7,9 @@ then
     composer.phar config -g github-oauth.github.com ${GITHUB_API_TOKEN}
 fi
 
+if [ -n "${GITLAB_API_TOKEN}" ]
+then
+    composer.phar config -g gitlab-token.${GITLAB_API_HOST} ${GITLAB_API_TOKEN}
+fi
+
 composer.phar "$@"

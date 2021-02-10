@@ -177,7 +177,7 @@ RUN apt-get update \
     && apt-get remove -y libssl-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-# Add GITHUB_API_TOKEN support for composer
+# Add GITHUB_API_TOKEN & GITLAB_API_TOKEN support for composer
 RUN chmod 700 \
         /usr/local/bin/docker-php-entrypoint \
         /usr/local/bin/composer
