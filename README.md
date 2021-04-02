@@ -123,14 +123,6 @@ The `docker-build.sh` script will (if `APP_DIR` is not empty):
 * **APP_DIR**: You PHP application should be installed in that directory (default: `/app`).
 * **APP_WRITE_DIRECTORIES**: List of directory in which the application need to be able to write (default: `runtime web/assets web/runtime tests/_output tests/_support/_generated`).
 
-### Documentation Generation configuration (buildtime)
-
-You can generate a static documentation with [daux.io](https://github.com/dauxio/daux.io) to be include in your application, if you've got a documentation directory inside your code.
-
-* **DOC_GENERATE**: Do you want to generate the static doc (default: `yes`).
-* **DOC_DIR_SRC**: Source directory of your documentation inside the `/app/` (default: `docs`).
-* **DOC_DIR_DST**: Destination directory of the generated documentation in `/app/web/` (default: `doc`).
-
 ### Composer configuration (buildtime)
 
 * **COMPOSER_DEV**: Install composer development dependencies (default: `no`, done by `docker-build.sh`).
