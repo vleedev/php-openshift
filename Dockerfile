@@ -242,39 +242,14 @@ RUN pecl install apcu \
     && docker-php-ext-enable apcu \
     && echo "apc.serializer=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini \
     && echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
-# Pinpoint - Collector agent
-ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.2
-ARG PINPOINT_COLLECTOR_AGENT_DIR=/opt/pinpoint-collector-agent
-ENV PINPOINT_COLLECTOR_AGENT_DIR ${PINPOINT_COLLECTOR_AGENT_DIR}
-ENV PINPOINT_COLLECTOR_AGENT_TYPE 1500
-ENv PINPOINT_COLLECTOR_AGENT_LOGDIR /var/log/pinpoint-collector-agent
-ENV PINPOINT_COLLECTOR_AGENT_LOGLEVEL ERROR
-ENV PINPOINT_COLLETOR_AGENT_ADDRESS unix:/var/run/pinpoint-collector-agent/collector-agent.sock
-
-ENV PINPOINT_COLLECTOR_GRPC_AGENT_PORT 9991
-ENV PINPOINT_COLLECTOR_GRPC_STAT_PORT 9992
-ENV PINPOINT_COLLECTOR_GRPC_SPAN_PORT 9993
 # Pinpoint - Fetch source
+ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.2
 # hadolint ignore=DL3003
 RUN git clone https://github.com/naver/pinpoint-c-agent.git /opt/pinpoint-c-agent/ \
     && cd /opt/pinpoint-c-agent \
-    && git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION} \
-    && cp -r collector-agent ${PINPOINT_COLLECTOR_AGENT_DIR}
-# Pinpoint - Install pinpoint collector agent
-# hadolint ignore=DL3003,DL3008,DL3013
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends python3 python3-dev python3-pip python3-setuptools python3-wheel \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && cd ${PINPOINT_COLLECTOR_AGENT_DIR} \
-    && pip3 install -r requirements.txt \
-    && pip3 install grpcio-tools \
-    && python3 -m grpc_tools.protoc -I./Proto/grpc --python_out=./Proto/grpc --grpc_python_out=./Proto/grpc ./Proto/grpc/*.proto \
-    && mkdir -p ${PINPOINT_COLLECTOR_AGENT_LOGDIR} /var/run/pinpoint-collector-agent \
-    && chgrp -R 0 ${PINPOINT_COLLECTOR_AGENT_DIR} ${PINPOINT_COLLECTOR_AGENT_LOGDIR} /var/run/pinpoint-collector-agent \
-    && chmod -R g=u ${PINPOINT_COLLECTOR_AGENT_DIR} ${PINPOINT_COLLECTOR_AGENT_LOGDIR} /var/run/pinpoint-collector-agent
+    && git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION}
 # Pinpoint - Php module configuration
-ENV PINPOINT_PHP_COLLETOR_AGENT_HOST ${PINPOINT_COLLETOR_AGENT_ADDRESS}
+ENV PINPOINT_PHP_COLLETOR_AGENT_HOST unix:/var/run/pinpoint-collector-agent/collector-agent.sock
 ENV PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS 0
 ENV PINPOINT_PHP_TRACE_LIMIT -1
 # Pinpoint - Install pinpoint php module
@@ -290,7 +265,10 @@ RUN apt-get update \
     && make test TESTS=src/PHP/tests/ \
     && make install \
     && make clean \
-    && rm -rf /opt/pinpoint-c-agent
+    && rm -rf /opt/pinpoint-c-agent \
+    && mkdir -p /var/run/pinpoint-collector-agent \
+    && chgrp -R 0 /var/run/pinpoint-collector-agent \
+    && chmod -R g=u /var/run/pinpoint-collector-agent
 # Php - Disable extension should be enable by user if needed
 RUN chmod g=u /usr/local/etc/php/conf.d/ \
     && chown root:root -R /usr/local/etc/php/conf.d \

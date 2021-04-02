@@ -104,9 +104,6 @@ elif [ "${1}" = "cron" ]; then
 	exec /usr/local/bin/supercronic ${args} /etc/crontab
 elif [ "${1}" = "apachectl" -o "${1}" = "bash" -o "${1}" = "composer" -o "${1}" = "php" -o "${1}" = "php-fpm" ]; then
 	exec ${@}
-elif [ "${1}" = "pinpoint-collector-agent" ]; then
-	mv /etc/service.tpl/pinpoint-collector-agent* /etc/service/
-	exec runsvdir /etc/service/
 elif [ "${1}" = "worker" ]; then
     nb_worker=${2}
     shift 2
