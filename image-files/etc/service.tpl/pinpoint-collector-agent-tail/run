@@ -1,3 +1,0 @@
-#!/bin/bash
-
-exec tail -F ${PINPOINT_COLLECTOR_AGENT_LOGDIR}/{collector,front}.agent.log
