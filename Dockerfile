@@ -209,23 +209,14 @@ RUN apt-get update \
     && apt-get remove -y libgmp-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-# Php - Gearman (not supported on php 8)
+# Php - Gearman
 # hadolint ignore=DL3003,DL3008
-RUN if [ "${PHP_VERSION%%.*}" -eq 7 ]; then \
-        apt-get update \
-            && apt-get install -y --no-install-recommends git unzip libgearman-dev libgearman8 \
-            && git clone https://github.com/wcgallego/pecl-gearman.git \
-            && cd pecl-gearman \
-            && phpize \
-            && ./configure \
-            && make \
-            && make install \
-            && cd - \
-            && rm -rf pecl-gearman \
-            && apt-get remove -y libgearman-dev \
-            && apt-get clean \
-            && rm -rf /var/lib/apt/lists/*; \
-    fi
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git unzip libgearman-dev libgearman8 \
+    && pecl install gearman \
+    && apt-get remove -y libgearman-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*;
 # Php - pcntl
 RUN docker-php-ext-install pcntl
 # Php - Xdebug
