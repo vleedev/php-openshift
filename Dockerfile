@@ -212,11 +212,11 @@ RUN apt-get update \
 # Php - Gearman
 # hadolint ignore=DL3003,DL3008
 RUN apt-get update \
-        && apt-get install -y --no-install-recommends git unzip libgearman-dev libgearman8 \
-        && RUN pecl install gearman \
-        && apt-get remove -y libgearman-dev \
-        && apt-get clean \
-        && rm -rf /var/lib/apt/lists/*;
+    && apt-get install -y --no-install-recommends git unzip libgearman-dev libgearman8 \
+    && pecl install gearman \
+    && apt-get remove -y libgearman-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*;
 # Php - pcntl
 RUN docker-php-ext-install pcntl
 # Php - Xdebug
