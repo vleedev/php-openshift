@@ -107,12 +107,7 @@ if [ -f "composer.json" ]; then
     fi
     echo -e "\tRunning composer ${args}"
     composer -n ${args} -o update
-    
-    if [ "${DOC_GENERATE}" = "yes" -a -d "${DOC_DIR_SRC}" ]; then
-        composer global require daux/daux.io
-        echo "Create doc from ${DOC_DIR_SRC} to web/${DOC_DIR_DST}"
-        ~/.composer/vendor/bin/daux generate -s ${DOC_DIR_SRC} -d web/${DOC_DIR_DST}
-    fi
+
     # Clean composer cache
     composer clear-cache
 
