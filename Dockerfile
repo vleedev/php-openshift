@@ -1,8 +1,8 @@
-ARG PHP_VERSION=8.0
+ARG PHP_VERSION=7.3
 ARG PHP_MOD=apache-buster
 ARG PHP_BASE_IMAGE_VERSION
 # Need to hard code the version until this is resolved https://github.com/renovatebot/renovate/issues/5626
-FROM php:8.0-apache-buster@sha256:dc59ef7a42364a59069026726d671395671345ae84e55adab438328e559d1d37
+FROM php:7.3-apache-buster@sha256:aa501d6837fef6a35acfc94fee9c701f0b84e6b3601e896298d40bd03c4a8a78
 ENV DEBIAN_FRONTEND=noninteractive
 ARG USER_ID=2000
 ARG APP_DIR=/app
@@ -148,7 +148,7 @@ RUN pecl channel-update pecl.php.net
 # hadolint ignore=DL3008
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libonig5 libonig-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-png-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-configure bcmath \
     && docker-php-ext-install \
         soap \
