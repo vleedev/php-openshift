@@ -58,8 +58,7 @@ ENV PATH=/app:/app/vendor/bin:/root/.composer/vendor/bin:$PATH
 # System - Set terminal type
 ENV TERM=linux
 # System - Install Yii framework bash autocompletion
-RUN curl -sSL https://raw.githubusercontent.com/yiisoft/yii2/master/contrib/completion/bash/yii \
-        -o /etc/bash_completion.d/yii
+ADD https://raw.githubusercontent.com/yiisoft/yii2/master/contrib/completion/bash/yii /etc/bash_completion.d/yii
 # Apache - install apache and mod fcgi if php-fpm
 ENV PHPFPM_PM_MAX_CHILDREN 10
 ENV PHPFPM_PM_START_SERVERS 5
@@ -185,6 +184,7 @@ ADD https://getcomposer.org/installer /installer
 RUN php /installer -- \
         --filename=composer.phar \
         --install-dir=/usr/local/bin \
+    && rm -f /installer \
     && chmod a+rx "/usr/local/bin/composer.phar" \
     # Php - Cache & Session support
     # Php - Redis
