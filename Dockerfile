@@ -179,12 +179,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 # Composer - Install composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
-ADD https://getcomposer.org/installer /installer
 # hadolint ignore=DL3008
-RUN php /installer -- \
+RUN curl -sS https://getcomposer.org/installer | php -- \
         --filename=composer.phar \
         --install-dir=/usr/local/bin \
-    && rm -f /installer \
     && chmod a+rx "/usr/local/bin/composer.phar" \
     # Php - Cache & Session support
     # Php - Redis
