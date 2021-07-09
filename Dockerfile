@@ -121,8 +121,8 @@ RUN rm -f /var/log/apache2/*.log \
 RUN sed -i -e 's/80/8080/g' -e 's/443/8443/g' /etc/apache2/ports.conf
 EXPOSE 8080 8443
 # Cron - use supercronic (https://github.com/aptible/supercronic)
-ENV SUPERCRONIC_VERSION=0.1.11
-ENV SUPERCRONIC_SHA1SUM=a2e2d47078a8dafc5949491e5ea7267cc721d67c
+ENV SUPERCRONIC_VERSION=0.1.12
+ENV SUPERCRONIC_SHA1SUM=048b95b48b708983effb2e5c935a1ef8483d9e3e
 ADD https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERSION}/supercronic-linux-amd64 /usr/local/bin/supercronic
 RUN echo "${SUPERCRONIC_SHA1SUM}" "/usr/local/bin/supercronic" | sha1sum -c - \
     && chmod a+rx "/usr/local/bin/supercronic"
@@ -233,7 +233,7 @@ RUN pecl install apcu \
     && echo "apc.serializer=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini \
     && echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
 # Pinpoint - Fetch source
-ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.2
+ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.3
 # hadolint ignore=DL3003
 RUN git clone https://github.com/naver/pinpoint-c-agent.git /opt/pinpoint-c-agent/ \
     && cd /opt/pinpoint-c-agent \
