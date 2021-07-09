@@ -58,26 +58,23 @@ ENV PATH=/app:/app/vendor/bin:/root/.composer/vendor/bin:$PATH
 # System - Set terminal type
 ENV TERM=linux
 # System - Install Yii framework bash autocompletion
-RUN curl -sSL https://raw.githubusercontent.com/yiisoft/yii2/master/contrib/completion/bash/yii \
-        -o /etc/bash_completion.d/yii
+ADD https://raw.githubusercontent.com/yiisoft/yii2/master/contrib/completion/bash/yii /etc/bash_completion.d/yii
 # Apache - install apache and mod fcgi if php-fpm
 ENV PHPFPM_PM_MAX_CHILDREN 10
 ENV PHPFPM_PM_START_SERVERS 5
 ENV PHPFPM_PM_MIN_SPARE_SERVERS 2
 ENV PHPFPM_PM_MAX_SPARE_SERVERS 5
-RUN rm -f /etc/apache2/sites-available/000-default.conf
-# hadolint ignore=DL3008, SC1089
-RUN if ! which apache2 > /dev/null 2>&1; then \
+# hadolint ignore=DL3008,SC1089,SC2016
+RUN rm -f /etc/apache2/sites-available/000-default.conf \
+    && if ! which apache2 > /dev/null 2>&1; then \
         apt-get update \
             && apt-get install --no-install-recommends -y apache2 \
             && apt-get clean \
             && rm -rf /var/lib/apt/lists/* ; \
         a2enmod proxy_fcgi; \
-    fi
-# hadolint ignore=SC2016
-RUN sed -i -e 's#^export \([^=]\+\)=\(.*\)$#export \1=${\1:=\2}#' /etc/apache2/envvars
-# hadolint ignore=SC2016
-RUN if [ -d /usr/local/etc/php-fpm.d ]; then \
+    fi \
+    && sed -i -e 's#^export \([^=]\+\)=\(.*\)$#export \1=${\1:=\2}#' /etc/apache2/envvars \
+    && if [ -d /usr/local/etc/php-fpm.d ]; then \
         sed -i -e 's#\(listen *= *\).*$#\1/var/run/php-fpm/fpm.sock#g' \
             -e 's#^\(user *= *\).*$#\1${APACHE_RUN_USER}#g' \
             -e 's#^\(group *= *\).*$#\1${APACHE_RUN_GROUP}#g' \
@@ -90,36 +87,36 @@ RUN if [ -d /usr/local/etc/php-fpm.d ]; then \
 # All - Add configuration files
 COPY image-files/ /
 RUN chgrp -R 0 /etc/service.tpl \
-    && chmod -R g=u /etc/service.tpl
-# Apache - Enable mod rewrite and headers
-RUN a2enmod headers rewrite
-# Apache - Disable useless configuration
-RUN a2disconf serve-cgi-bin
-# Apache - remoteip module
-RUN a2enmod remoteip
-RUN sed -i 's/%h/%a/g' /etc/apache2/apache2.conf
+    && chmod -R g=u /etc/service.tpl \
+    # Apache - Enable mod rewrite and headers
+    && a2enmod headers rewrite \
+    # Apache - Disable useless configuration
+    && a2disconf serve-cgi-bin \
+    # Apache - remoteip module
+    && a2enmod remoteip \
+    && sed -i 's/%h/%a/g' /etc/apache2/apache2.conf
 ENV APACHE_REMOTE_IP_HEADER X-Forwarded-For
 ENV APACHE_REMOTE_IP_TRUSTED_PROXY 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
 ENV APACHE_REMOTE_IP_INTERNAL_PROXY 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
-RUN a2enconf remoteip
-# Apache - Hide version
-RUN sed -i 's/^ServerTokens OS$/ServerTokens Prod/g' /etc/apache2/conf-available/security.conf
+RUN a2enconf remoteip \
+    # Apache - Hide version
+    && sed -i 's/^ServerTokens OS$/ServerTokens Prod/g' /etc/apache2/conf-available/security.conf
 # Apache - Avoid warning at startup
 ENV APACHE_SERVER_NAME __default__
-RUN a2enconf servername
-# Apache - Logging
-RUN sed -i -e 's/vhost_combined/combined/g' -e 's/other_vhosts_access/access/g' /etc/apache2/conf-available/other-vhosts-access-log.conf
+RUN a2enconf servername \
+    # Apache - Logging
+    && sed -i -e 's/vhost_combined/combined/g' -e 's/other_vhosts_access/access/g' /etc/apache2/conf-available/other-vhosts-access-log.conf
 # Apache - Syslog Log
 ENV APACHE_SYSLOG_PORT 514
 ENV APACHE_SYSLOG_PROGNAME httpd
 # Apache- Prepare to be run as non root user
 RUN mkdir -p /var/lock/apache2 /var/run/apache2 /var/run/php-fpm \
     && chgrp -R 0 /run /var/lock/apache2 /var/log/apache2 /var/run/apache2 /etc/service /var/run/php-fpm \
-    && chmod -R g=u /etc/passwd /run /var/lock/apache2 /var/log/apache2 /var/run/apache2 /etc/service
-RUN rm -f /var/log/apache2/*.log \
+    && chmod -R g=u /etc/passwd /run /var/lock/apache2 /var/log/apache2 /var/run/apache2 /etc/service \
+    && rm -f /var/log/apache2/*.log \
     && ln -s /proc/self/fd/2 /var/log/apache2/error.log \
-    && ln -s /proc/self/fd/1 /var/log/apache2/access.log
-RUN sed -i -e 's/80/8080/g' -e 's/443/8443/g' /etc/apache2/ports.conf
+    && ln -s /proc/self/fd/1 /var/log/apache2/access.log \
+    && sed -i -e 's/80/8080/g' -e 's/443/8443/g' /etc/apache2/ports.conf
 EXPOSE 8080 8443
 # Cron - use supercronic (https://github.com/aptible/supercronic)
 ENV SUPERCRONIC_VERSION=0.1.12
@@ -165,71 +162,68 @@ RUN apt-get update \
         pdo_pgsql \
     && apt-get remove -y libonig-dev \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-# Php - Install image magick (see http://stackoverflow.com/a/8154466/291573 for usage of `printf`)
-# need to wait for https://github.com/Imagick/imagick/issues/358
-RUN if [ "${PHP_VERSION%%.*}" -lt 7 ]; then \
+    && rm -rf /var/lib/apt/lists/* \
+    # Php - Install image magick (see http://stackoverflow.com/a/8154466/291573 for usage of `printf`)
+    # need to wait for https://github.com/Imagick/imagick/issues/358
+    && if [ "${PHP_VERSION%%.*}" -lt 7 ]; then \
         printf "\n" | pecl install imagick; \
         docker-php-ext-enable imagick; \
-    fi
-# Php - Mongodb with SSL
-# hadolint ignore=DL3008
-RUN apt-get update \
+    fi \
+    # Php - Mongodb with SSL
+    && apt-get update \
     && apt-get install -y --no-install-recommends libssl1.1 libssl-dev \
     && pecl uninstall mongodb \
     && pecl install mongodb \
     && apt-get remove -y libssl-dev \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /var/lib/apt/lists/*
 # Composer - Install composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
+# hadolint ignore=DL3008
 RUN curl -sS https://getcomposer.org/installer | php -- \
         --filename=composer.phar \
         --install-dir=/usr/local/bin \
-    && chmod a+rx "/usr/local/bin/composer.phar"
-# Php - Cache & Session support
-# Php - Redis
-RUN pecl install redis \
-    && docker-php-ext-enable redis
-# Php - Yaml
-# hadolint ignore=DL3008
-RUN apt-get update \
+    && chmod a+rx "/usr/local/bin/composer.phar" \
+    # Php - Cache & Session support
+    # Php - Redis
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    # Php - Yaml
+    && apt-get update \
     && apt-get install -y --no-install-recommends libyaml-dev libyaml-0-2 \
     && pecl install yaml \
     && docker-php-ext-enable yaml \
     && apt-get remove -y libyaml-dev \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-# Php - GMP
-# hadolint ignore=DL3008
-RUN apt-get update \
+    && rm -rf /var/lib/apt/lists/* \
+    # Php - GMP
+    && apt-get update \
     && apt-get install -y --no-install-recommends libgmp-dev libgmpxx4ldbl \
     && ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h \
     && docker-php-ext-install gmp \
     && apt-get remove -y libgmp-dev \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-# Php - Gearman
-# hadolint ignore=DL3003,DL3008
-RUN apt-get update \
+    && rm -rf /var/lib/apt/lists/* \
+    # Php - Gearman
+    && apt-get update \
     && apt-get install -y --no-install-recommends git unzip libgearman-dev libgearman8 \
     && pecl install gearman \
     && apt-get remove -y libgearman-dev \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*;
-# Php - pcntl
-RUN docker-php-ext-install pcntl
+    && rm -rf /var/lib/apt/lists/* \
+    # Php - pcntl
+    && docker-php-ext-install pcntl
 # Php - Xdebug
 ENV PHP_ENABLE_XDEBUG=0
 ENV PHP_XDEBUG_MODE=debug
-RUN pecl install xdebug
-# Php - Sockets
-RUN docker-php-ext-install sockets
-# Php - Igbinary
-RUN pecl install igbinary \
+RUN pecl install xdebug \
+    # Php - Sockets
+    && docker-php-ext-install sockets \
+    # Php - Igbinary
+    && pecl install igbinary \
     && docker-php-ext-enable igbinary \
-    && echo "session.serialize_handler=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini
-RUN pecl install apcu \
+    && echo "session.serialize_handler=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini \
+    && pecl install apcu \
     && docker-php-ext-enable apcu \
     && echo "apc.serializer=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini \
     && echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
@@ -259,9 +253,9 @@ RUN apt-get update \
     && rm -rf /opt/pinpoint-c-agent \
     && mkdir -p /var/run/pinpoint-collector-agent \
     && chgrp -R 0 /var/run/pinpoint-collector-agent \
-    && chmod -R g=u /var/run/pinpoint-collector-agent
-# Php - Disable extension should be enable by user if needed
-RUN chmod g=u /usr/local/etc/php/conf.d/ \
+    && chmod -R g=u /var/run/pinpoint-collector-agent \
+    # Php - Disable extension should be enable by user if needed
+    && chmod g=u /usr/local/etc/php/conf.d/ \
     && chown root:root -R /usr/local/etc/php/conf.d \
     && rm -f /usr/local/etc/php/conf.d/docker-php-ext-exif.ini \
             /usr/local/etc/php/conf.d/docker-php-ext-gd.ini \
@@ -274,13 +268,13 @@ RUN chmod g=u /usr/local/etc/php/conf.d/ \
             /usr/local/etc/php/conf.d/docker-php-ext-soap.ini \
             /usr/local/etc/php/conf.d/docker-php-ext-sockets.ini \
             /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-            /usr/local/etc/php/conf.d/docker-php-ext-zip.ini
-# System - Clean apt
-RUN apt-get autoremove -y \
+            /usr/local/etc/php/conf.d/docker-php-ext-zip.ini \
+    # System - Clean apt
+    && apt-get autoremove -y \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-RUN mkdir -p ${APP_DIR}
-RUN chmod a+rx /docker-bin/*.sh \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && mkdir -p ${APP_DIR} \
+    && chmod a+rx /docker-bin/*.sh \
     && /docker-bin/docker-build.sh
 WORKDIR ${APP_DIR}
 USER ${USER_ID}
