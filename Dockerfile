@@ -59,22 +59,13 @@ ENV PATH=/app:/app/vendor/bin:/root/.composer/vendor/bin:$PATH
 ENV TERM=linux
 # System - Install Yii framework bash autocompletion
 ADD https://raw.githubusercontent.com/yiisoft/yii2/master/contrib/completion/bash/yii /etc/bash_completion.d/yii
-# Apache - install apache and mod fcgi if php-fpm
+# Php - configure if php-fpm
 ENV PHPFPM_PM_MAX_CHILDREN 10
 ENV PHPFPM_PM_START_SERVERS 5
 ENV PHPFPM_PM_MIN_SPARE_SERVERS 2
 ENV PHPFPM_PM_MAX_SPARE_SERVERS 5
 # hadolint ignore=DL3008,SC1089,SC2016
-RUN rm -f /etc/apache2/sites-available/000-default.conf \
-    && if ! which apache2 > /dev/null 2>&1; then \
-        apt-get update \
-            && apt-get install --no-install-recommends -y apache2 \
-            && apt-get clean \
-            && rm -rf /var/lib/apt/lists/* ; \
-        a2enmod proxy_fcgi; \
-    fi \
-    && sed -i -e 's#^export \([^=]\+\)=\(.*\)$#export \1=${\1:=\2}#' /etc/apache2/envvars \
-    && if [ -d /usr/local/etc/php-fpm.d ]; then \
+RUN if [ -d /usr/local/etc/php-fpm.d ]; then \
         sed -i -e 's#\(listen *= *\).*$#\1/var/run/php-fpm/fpm.sock#g' \
             -e 's#^\(user *= *\).*$#\1${APACHE_RUN_USER}#g' \
             -e 's#^\(group *= *\).*$#\1${APACHE_RUN_GROUP}#g' \
@@ -86,37 +77,39 @@ RUN rm -f /etc/apache2/sites-available/000-default.conf \
     fi
 # All - Add configuration files
 COPY image-files/ /
-RUN chgrp -R 0 /etc/service.tpl \
-    && chmod -R g=u /etc/service.tpl \
-    # Apache - Enable mod rewrite and headers
-    && a2enmod headers rewrite \
-    # Apache - Disable useless configuration
-    && a2disconf serve-cgi-bin \
-    # Apache - remoteip module
-    && a2enmod remoteip \
-    && sed -i 's/%h/%a/g' /etc/apache2/apache2.conf
+# Apache - configure if apache image
 ENV APACHE_REMOTE_IP_HEADER X-Forwarded-For
 ENV APACHE_REMOTE_IP_TRUSTED_PROXY 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
 ENV APACHE_REMOTE_IP_INTERNAL_PROXY 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
-RUN a2enconf remoteip \
-    # Apache - Hide version
-    && sed -i 's/^ServerTokens OS$/ServerTokens Prod/g' /etc/apache2/conf-available/security.conf
 # Apache - Avoid warning at startup
 ENV APACHE_SERVER_NAME __default__
-RUN a2enconf servername \
-    # Apache - Logging
-    && sed -i -e 's/vhost_combined/combined/g' -e 's/other_vhosts_access/access/g' /etc/apache2/conf-available/other-vhosts-access-log.conf
 # Apache - Syslog Log
 ENV APACHE_SYSLOG_PORT 514
 ENV APACHE_SYSLOG_PROGNAME httpd
-# Apache- Prepare to be run as non root user
-RUN mkdir -p /var/lock/apache2 /var/run/apache2 /var/run/php-fpm \
-    && chgrp -R 0 /run /var/lock/apache2 /var/log/apache2 /var/run/apache2 /etc/service /var/run/php-fpm \
-    && chmod -R g=u /etc/passwd /run /var/lock/apache2 /var/log/apache2 /var/run/apache2 /etc/service \
-    && rm -f /var/log/apache2/*.log \
-    && ln -s /proc/self/fd/2 /var/log/apache2/error.log \
-    && ln -s /proc/self/fd/1 /var/log/apache2/access.log \
-    && sed -i -e 's/80/8080/g' -e 's/443/8443/g' /etc/apache2/ports.conf
+RUN if which apache2 > /dev/null 2>&1; then \
+        sed -i -e 's#^export \([^=]\+\)=\(.*\)$#export \1=${\1:=\2}#' /etc/apache2/envvars \
+        # Apache - Enable mod rewrite and headers
+        && a2enmod headers rewrite \
+        # Apache - Disable useless configuration
+        && a2disconf serve-cgi-bin \
+        # Apache - remoteip module
+        && a2enmod remoteip \
+        && sed -i 's/%h/%a/g' /etc/apache2/apache2.conf \
+        && a2enconf remoteip \
+        # Apache - Hide version
+        && sed -i 's/^ServerTokens OS$/ServerTokens Prod/g' /etc/apache2/conf-available/security.conf \
+        && a2enconf servername \
+        # Apache - Logging
+        && sed -i -e 's/vhost_combined/combined/g' -e 's/other_vhosts_access/access/g' /etc/apache2/conf-available/other-vhosts-access-log.conf \
+        # Apache- Prepare to be run as non root user
+        && mkdir -p /var/lock/apache2 /var/run/apache2 /var/run/php-fpm \
+        && chgrp -R 0 /run /var/lock/apache2 /var/log/apache2 /var/run/apache2 /etc/service /var/run/php-fpm \
+        && chmod -R g=u /etc/passwd /run /var/lock/apache2 /var/log/apache2 /var/run/apache2 /etc/service \
+        && rm -f /var/log/apache2/*.log \
+        && ln -s /proc/self/fd/2 /var/log/apache2/error.log \
+        && ln -s /proc/self/fd/1 /var/log/apache2/access.log \
+        && sed -i -e 's/80/8080/g' -e 's/443/8443/g' /etc/apache2/ports.conf; \
+    fi
 EXPOSE 8080 8443
 # Cron - use supercronic (https://github.com/aptible/supercronic)
 ENV SUPERCRONIC_VERSION=0.1.12
@@ -227,14 +220,9 @@ RUN pecl install xdebug \
     && docker-php-ext-enable apcu \
     && echo "apc.serializer=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini \
     && echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
-# Pinpoint - Fetch source
-ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.3
-# hadolint ignore=DL3003
-RUN git clone https://github.com/naver/pinpoint-c-agent.git /opt/pinpoint-c-agent/ \
-    && cd /opt/pinpoint-c-agent \
-    && git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION}
 # Pinpoint - Php module configuration
-ENV PINPOINT_PHP_COLLETOR_AGENT_HOST unix:/var/run/pinpoint-collector-agent/collector-agent.sock
+ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.4
+ENV PINPOINT_PHP_COLLETOR_AGENT_HOST tcp:pinpoint-collector-agent:8080
 ENV PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS 0
 ENV PINPOINT_PHP_TRACE_LIMIT -1
 # Pinpoint - Install pinpoint php module
@@ -243,17 +231,16 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends cmake \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && cd /opt/pinpoint-c-agent/ \
+    && git clone https://github.com/naver/pinpoint-c-agent.git /pinpoint-c-agent/ \
+    && cd /pinpoint-c-agent \
+    && git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION} \
     && phpize \
     && ./configure \
     && make \
     && make test TESTS=src/PHP/tests/ \
     && make install \
     && make clean \
-    && rm -rf /opt/pinpoint-c-agent \
-    && mkdir -p /var/run/pinpoint-collector-agent \
-    && chgrp -R 0 /var/run/pinpoint-collector-agent \
-    && chmod -R g=u /var/run/pinpoint-collector-agent \
+    && rm -rf /pinpoint-c-agent \
     # Php - Disable extension should be enable by user if needed
     && chmod g=u /usr/local/etc/php/conf.d/ \
     && chown root:root -R /usr/local/etc/php/conf.d \
