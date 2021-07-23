@@ -86,8 +86,6 @@ if [ 0 -ne "${PHP_ENABLE_PINPOINT:-0}" ] ; then
 	else
 	    echo "Failed to enable ${extension}"
 	fi
-else
-	rm -rf /etc/service.tpl/pinpoint-collector-agent*
 fi
 
 if [ -n "${1}" ]; then
@@ -102,8 +100,6 @@ elif [ "${1}" = "cron" ]; then
 		args="-debug"
 	fi
 	exec /usr/local/bin/supercronic ${args} /etc/crontab
-elif [ "${1}" = "apachectl" -o "${1}" = "bash" -o "${1}" = "composer" -o "${1}" = "php" -o "${1}" = "php-fpm" ]; then
-	exec ${@}
 elif [ "${1}" = "worker" ]; then
     nb_worker=${2}
     shift 2
@@ -126,38 +122,31 @@ elif [ "${1}" = "loop" ]; then
 		sleep ${LOOP_TIMEOUT:-1d}
 	done
 else
-	# Apache - User
-	export APACHE_RUN_USER="${USER_NAME}"
-	export APACHE_RUN_GROUP="root"
-	echo "APACHE_RUN_USER: ${APACHE_RUN_USER}"
-	echo "APACHE_RUN_GROUP: ${APACHE_RUN_GROUP}"
-	
-	# Apache - Syslog
-	if ls -1 /etc/apache2/conf-enabled/ | grep -q '^syslog.conf$'; then
-		# APACHE_SYSLOG_HOST not defined but SYSLOG_HOST is
-		if [ -n "${SYSLOG_HOST}" -a -z "${APACHE_SYSLOG_HOST}" ]; then
-			export APACHE_SYSLOG_HOST=${SYSLOG_HOST}
+	if [ "${1}" = "apachectl" ]; then
+		# Apache - User
+		export APACHE_RUN_USER="${USER_NAME}"
+		export APACHE_RUN_GROUP="root"
+		echo "APACHE_RUN_USER: ${APACHE_RUN_USER}"
+		echo "APACHE_RUN_GROUP: ${APACHE_RUN_GROUP}"
+		
+		# Apache - Syslog
+		if ls -1 /etc/apache2/conf-enabled/ | grep -q '^syslog.conf$'; then
+			# APACHE_SYSLOG_HOST not defined but SYSLOG_HOST is
+			if [ -n "${SYSLOG_HOST}" -a -z "${APACHE_SYSLOG_HOST}" ]; then
+				export APACHE_SYSLOG_HOST=${SYSLOG_HOST}
+			fi
+			if [ -n "${SYSLOG_PORT}" -a -z "${APACHE_SYSLOG_PORt}" ]; then
+				export APACHE_SYSLOG_PORT=${SYSLOG_PORT}
+			fi
+			echo "APACHE Syslog enabled"
+			echo "APACHE_SYSLOG_HOST: ${APACHE_SYSLOG_HOST}"
+			echo "APACHE_SYSLOG_PORT: ${APACHE_SYSLOG_PORT}"
+			echo "APACHE_SYSLOG_PROGNAME: ${APACHE_SYSLOG_PROGNAME}"
 		fi
-		if [ -n "${SYSLOG_PORT}" -a -z "${APACHE_SYSLOG_PORt}" ]; then
-			export APACHE_SYSLOG_PORT=${SYSLOG_PORT}
-		fi
-		echo "APACHE Syslog enabled"
-		echo "APACHE_SYSLOG_HOST: ${APACHE_SYSLOG_HOST}"
-		echo "APACHE_SYSLOG_PORT: ${APACHE_SYSLOG_PORT}"
-		echo "APACHE_SYSLOG_PROGNAME: ${APACHE_SYSLOG_PROGNAME}"
-	fi
 
-	echo "APACHE_REMOTE_IP_HEADER: ${APACHE_REMOTE_IP_HEADER}"
-	echo "APACHE_REMOTE_IP_TRUSTED_PROXY: ${APACHE_REMOTE_IP_TRUSTED_PROXY}"
-	echo "APACHE_REMOTE_IP_INTERNAL_PROXY: ${APACHE_REMOTE_IP_INTERNAL_PROXY}"
-
-	if which php-fpm 2>&1 > /dev/null; then
-		echo "No command line running Apache HTTPD server with php-fpm"
-		export PHP_CGI_FIX_PATHINFO=1
-	else
-		echo "No command line running Apache HTTPD server with mod_php"
-		rm -rf /etc/service.tpl/php-fpm
+		echo "APACHE_REMOTE_IP_HEADER: ${APACHE_REMOTE_IP_HEADER}"
+		echo "APACHE_REMOTE_IP_TRUSTED_PROXY: ${APACHE_REMOTE_IP_TRUSTED_PROXY}"
+		echo "APACHE_REMOTE_IP_INTERNAL_PROXY: ${APACHE_REMOTE_IP_INTERNAL_PROXY}"
 	fi
-	mv /etc/service.tpl/* /etc/service/
-	exec runsvdir /etc/service/
+	exec ${@}
 fi
