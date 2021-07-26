@@ -122,7 +122,7 @@ elif [ "${1}" = "loop" ]; then
 		sleep ${LOOP_TIMEOUT:-1d}
 	done
 else
-	if [ "${1}" = "apachectl" ]; then
+	if which apache2 > /dev/null 2>&1; then \
 		# Apache - User
 		export APACHE_RUN_USER="${USER_NAME}"
 		export APACHE_RUN_GROUP="root"
@@ -147,6 +147,14 @@ else
 		echo "APACHE_REMOTE_IP_HEADER: ${APACHE_REMOTE_IP_HEADER}"
 		echo "APACHE_REMOTE_IP_TRUSTED_PROXY: ${APACHE_REMOTE_IP_TRUSTED_PROXY}"
 		echo "APACHE_REMOTE_IP_INTERNAL_PROXY: ${APACHE_REMOTE_IP_INTERNAL_PROXY}"
+	fi
+
+	# No args provided
+	if [ -z "${1}" ]; then
+		# php-fpm image start php-fpm by default
+		if which php-fpm > /dev/null 2>&1; then
+			exec php-fpm --nodaemonize --force-stderr --allow-to-run-as-root
+		fi
 	fi
 	exec ${@}
 fi
