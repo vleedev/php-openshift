@@ -102,15 +102,19 @@ RUN if which apache2 > /dev/null 2>&1; then \
         # Apache - Logging
         && sed -i -e 's/vhost_combined/combined/g' -e 's/other_vhosts_access/access/g' /etc/apache2/conf-available/other-vhosts-access-log.conf \
         # Apache- Prepare to be run as non root user
-        && mkdir -p /var/lock/apache2 /var/run/apache2 /var/run/php-fpm \
-        && chgrp -R 0 /run /var/lock/apache2 /var/log/apache2 /var/run/apache2 /etc/service /var/run/php-fpm \
-        && chmod -R g=u /etc/passwd /run /var/lock/apache2 /var/log/apache2 /var/run/apache2 /etc/service \
+        && mkdir -p /var/lock/apache2 /var/run/apache2 \
+        && chgrp -R 0 /var/lock/apache2 /var/log/apache2 /var/run/apache2 \
+        && chmod -R g=u /var/lock/apache2 /var/log/apache2 /var/run/apache2 \
         && rm -f /var/log/apache2/*.log \
         && ln -s /proc/self/fd/2 /var/log/apache2/error.log \
         && ln -s /proc/self/fd/1 /var/log/apache2/access.log \
         && sed -i -e 's/80/8080/g' -e 's/443/8443/g' /etc/apache2/ports.conf; \
     fi
 EXPOSE 8080 8443
+# Php
+RUN mkdir -p /var/run/php-fpm \
+    && chgrp -R 0 /run /etc/service /var/run/php-fpm \
+    && chmod -R g=u /etc/passwd /run /etc/service
 # Cron - use supercronic (https://github.com/aptible/supercronic)
 ENV SUPERCRONIC_VERSION=0.1.12
 ENV SUPERCRONIC_SHA1SUM=048b95b48b708983effb2e5c935a1ef8483d9e3e
@@ -231,15 +235,16 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends cmake \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && git clone https://github.com/naver/pinpoint-c-agent.git /pinpoint-c-agent/ \
+    #&& git clone https://github.com/naver/pinpoint-c-agent.git /pinpoint-c-agent/ \
+    && git clone https://github.com/eeliu/pinpoint-c-agent.git /pinpoint-c-agent/ \
     && cd /pinpoint-c-agent \
-    && git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION} \
+    #&& git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION} \
+    && git checkout feat-php-error \
     && phpize \
     && ./configure \
     && make \
     && make test TESTS=src/PHP/tests/ \
     && make install \
-    && make clean \
     && rm -rf /pinpoint-c-agent \
     # Php - Disable extension should be enable by user if needed
     && chmod g=u /usr/local/etc/php/conf.d/ \
