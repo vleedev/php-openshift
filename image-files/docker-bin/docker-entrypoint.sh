@@ -154,6 +154,8 @@ else
 		# php-fpm image start php-fpm by default
 		if which php-fpm > /dev/null 2>&1; then
 			exec php-fpm --nodaemonize --force-stderr --allow-to-run-as-root
+		elif which apache2-foreground; then
+			exec apache2-foreground
 		fi
 	fi
 	exec ${@}
