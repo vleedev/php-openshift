@@ -228,6 +228,7 @@ RUN pecl install xdebug \
 # Pinpoint - Php module configuration
 ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.4
 ENV PINPOINT_PHP_COLLETOR_AGENT_HOST tcp:pinpoint-collector-agent:8080
+ENV PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS 100
 ENV PINPOINT_PHP_TRACE_LIMIT -1
 # Pinpoint - Install pinpoint php module
 # hadolint ignore=DL3003,DL3008
