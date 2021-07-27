@@ -82,14 +82,17 @@ fi
 # Enable pinpoint by ENV variable
 if [ 0 -ne "${PHP_ENABLE_PINPOINT:-0}" ] ; then
     if docker-php-ext-enable pinpoint_php; then
-		echo "Enabled ${extension}"
+		echo "Enabled pinpoint_php"
 	else
-	    echo "Failed to enable ${extension}"
+	    echo "Failed to enable pinpoint_php"
 	fi
 fi
 
 if [ -n "${1}" ]; then
 	echo "Command line: ${@}"
+	export PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS=${PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS:-100}
+else
+	export PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS=${PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS:-0}
 fi
 
 if [ "${1}" = "yii" ]; then

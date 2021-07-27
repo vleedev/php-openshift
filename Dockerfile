@@ -227,7 +227,6 @@ RUN pecl install xdebug \
 # Pinpoint - Php module configuration
 ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.4
 ENV PINPOINT_PHP_COLLETOR_AGENT_HOST tcp:pinpoint-collector-agent:8080
-ENV PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS 0
 ENV PINPOINT_PHP_TRACE_LIMIT -1
 # Pinpoint - Install pinpoint php module
 # hadolint ignore=DL3003,DL3008
@@ -239,7 +238,7 @@ RUN apt-get update \
     && git clone https://github.com/eeliu/pinpoint-c-agent.git /pinpoint-c-agent/ \
     && cd /pinpoint-c-agent \
     #&& git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION} \
-    && git checkout feat-php-error \
+    && git checkout feat-cli \
     && phpize \
     && ./configure \
     && make \
