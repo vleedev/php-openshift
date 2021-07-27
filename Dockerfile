@@ -59,6 +59,7 @@ ENV PATH=/app:/app/vendor/bin:/root/.composer/vendor/bin:$PATH
 ENV TERM=linux
 # System - Install Yii framework bash autocompletion
 ADD https://raw.githubusercontent.com/yiisoft/yii2/master/contrib/completion/bash/yii /etc/bash_completion.d/yii
+RUN chmod a+rx /etc/bash_completion.d/yii
 # Php - configure if php-fpm
 ENV PHPFPM_PM_MAX_CHILDREN 10
 ENV PHPFPM_PM_START_SERVERS 5
