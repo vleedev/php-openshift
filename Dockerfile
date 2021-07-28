@@ -236,11 +236,10 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends cmake \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    #&& git clone https://github.com/naver/pinpoint-c-agent.git /pinpoint-c-agent/ \
-    && git clone https://github.com/eeliu/pinpoint-c-agent.git /pinpoint-c-agent/ \
+    && git clone https://github.com/naver/pinpoint-c-agent.git /pinpoint-c-agent/ \
     && cd /pinpoint-c-agent \
     #&& git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION} \
-    && git checkout feat-cli \
+    && git checkout 658b146b56c8f0fa63d53262dabcde12076c7696 \
     && phpize \
     && ./configure \
     && make \
