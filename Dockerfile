@@ -226,7 +226,7 @@ RUN pecl install xdebug \
     && echo "apc.serializer=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini \
     && echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
 # Pinpoint - Php module configuration
-ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.4
+ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.5
 ENV PINPOINT_PHP_COLLETOR_AGENT_HOST tcp:pinpoint-collector-agent:8080
 ENV PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS 100
 ENV PINPOINT_PHP_TRACE_LIMIT -1
@@ -238,8 +238,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && git clone https://github.com/naver/pinpoint-c-agent.git /pinpoint-c-agent/ \
     && cd /pinpoint-c-agent \
-    #&& git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION} \
-    && git checkout 658b146b56c8f0fa63d53262dabcde12076c7696 \
+    && git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION} \
     && phpize \
     && ./configure \
     && make \
