@@ -59,6 +59,7 @@ ENV PATH=/app:/app/vendor/bin:/root/.composer/vendor/bin:$PATH
 ENV TERM=linux
 # System - Install Yii framework bash autocompletion
 ADD https://raw.githubusercontent.com/yiisoft/yii2/master/contrib/completion/bash/yii /etc/bash_completion.d/yii
+RUN chmod a+rx /etc/bash_completion.d/yii
 # Php - configure if php-fpm
 ENV PHPFPM_PM_MAX_CHILDREN 10
 ENV PHPFPM_PM_START_SERVERS 5
@@ -225,8 +226,9 @@ RUN pecl install xdebug \
     && echo "apc.serializer=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini \
     && echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
 # Pinpoint - Php module configuration
-ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.4
+ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.5
 ENV PINPOINT_PHP_COLLETOR_AGENT_HOST tcp:pinpoint-collector-agent:8080
+ENV PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS 100
 ENV PINPOINT_PHP_TRACE_LIMIT -1
 # Pinpoint - Install pinpoint php module
 # hadolint ignore=DL3003,DL3008
@@ -234,11 +236,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends cmake \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    #&& git clone https://github.com/naver/pinpoint-c-agent.git /pinpoint-c-agent/ \
-    && git clone https://github.com/eeliu/pinpoint-c-agent.git /pinpoint-c-agent/ \
+    && git clone https://github.com/naver/pinpoint-c-agent.git /pinpoint-c-agent/ \
     && cd /pinpoint-c-agent \
-    #&& git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION} \
-    && git checkout feat-cli \
+    && git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION} \
     && phpize \
     && ./configure \
     && make \
