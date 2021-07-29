@@ -15,7 +15,7 @@ ARG GITHUB_API_TOKEN
 ARG GITLAB_API_HOST
 ARG GITLAB_API_TOKEN
 # System - Application path
-ENV APP_DIR ${APP_DIR}
+ENV APP_DIR=${APP_DIR}
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # System - Update embded package
 # hadolint ignore=DL3008
@@ -47,9 +47,9 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 # System - Set default timezone
-ENV TZ ${TZ}
+ENV TZ=${TZ}
 # System - Define HOME directory
-ENV USER_HOME ${USER_HOME}
+ENV USER_HOME=${USER_HOME}
 RUN mkdir -p ${USER_HOME} \
     && chgrp -R 0 ${USER_HOME} \
     && chmod -R g=u ${USER_HOME}
@@ -61,10 +61,10 @@ ENV TERM=linux
 ADD https://raw.githubusercontent.com/yiisoft/yii2/master/contrib/completion/bash/yii /etc/bash_completion.d/yii
 RUN chmod a+rx /etc/bash_completion.d/yii
 # Php - configure if php-fpm
-ENV PHPFPM_PM_MAX_CHILDREN 10
-ENV PHPFPM_PM_START_SERVERS 5
-ENV PHPFPM_PM_MIN_SPARE_SERVERS 2
-ENV PHPFPM_PM_MAX_SPARE_SERVERS 5
+ENV PHPFPM_PM_MAX_CHILDREN=10
+ENV PHPFPM_PM_START_SERVERS=5
+ENV PHPFPM_PM_MIN_SPARE_SERVERS=2
+ENV PHPFPM_PM_MAX_SPARE_SERVERS=5
 # hadolint ignore=DL3008,SC1089,SC2016
 RUN if [ -d /usr/local/etc/php-fpm.d ]; then \
         sed -i -e 's#\(listen *= *\).*$#\1/var/run/php-fpm/fpm.sock#g' \
@@ -80,8 +80,8 @@ RUN if [ -d /usr/local/etc/php-fpm.d ]; then \
 COPY image-files/ /
 # Apache - configure if apache image
 ENV APACHE_REMOTE_IP_HEADER=X-Forwarded-For
-ENV APACHE_REMOTE_IP_TRUSTED_PROXY=10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
-ENV APACHE_REMOTE_IP_INTERNAL_PROXY=10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+ENV APACHE_REMOTE_IP_TRUSTED_PROXY="10.0.0.0/8 172.16.0.0/12 192.168.0.0/16"
+ENV APACHE_REMOTE_IP_INTERNAL_PROXY="10.0.0.0/8 172.16.0.0/12 192.168.0.0/16"
 # Apache - Avoid warning at startup
 ENV APACHE_SERVER_NAME=__default__
 # Apache - Syslog Log
