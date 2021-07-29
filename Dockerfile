@@ -1,6 +1,3 @@
-ARG PHP_VERSION=8.0
-ARG PHP_MOD=fpm-buster
-ARG PHP_BASE_IMAGE_VERSION
 # Need to hard code the version until this is resolved https://github.com/renovatebot/renovate/issues/5626
 FROM php:8.0-apache-buster@sha256:bc3bf769aff70e8f8183f087d9d855b492826aa94052c194f1a830b6b48acb13
 ENV DEBIAN_FRONTEND=noninteractive
@@ -15,7 +12,7 @@ ARG GITHUB_API_TOKEN
 ARG GITLAB_API_HOST
 ARG GITLAB_API_TOKEN
 # System - Application path
-ENV APP_DIR ${APP_DIR}
+ENV APP_DIR=${APP_DIR}
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # System - Update embded package
 # hadolint ignore=DL3008
@@ -47,9 +44,9 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 # System - Set default timezone
-ENV TZ ${TZ}
+ENV TZ=${TZ}
 # System - Define HOME directory
-ENV USER_HOME ${USER_HOME}
+ENV USER_HOME=${USER_HOME}
 RUN mkdir -p ${USER_HOME} \
     && chgrp -R 0 ${USER_HOME} \
     && chmod -R g=u ${USER_HOME}
@@ -59,11 +56,12 @@ ENV PATH=/app:/app/vendor/bin:/root/.composer/vendor/bin:$PATH
 ENV TERM=linux
 # System - Install Yii framework bash autocompletion
 ADD https://raw.githubusercontent.com/yiisoft/yii2/master/contrib/completion/bash/yii /etc/bash_completion.d/yii
+RUN chmod a+rx /etc/bash_completion.d/yii
 # Php - configure if php-fpm
-ENV PHPFPM_PM_MAX_CHILDREN 10
-ENV PHPFPM_PM_START_SERVERS 5
-ENV PHPFPM_PM_MIN_SPARE_SERVERS 2
-ENV PHPFPM_PM_MAX_SPARE_SERVERS 5
+ENV PHPFPM_PM_MAX_CHILDREN=10
+ENV PHPFPM_PM_START_SERVERS=5
+ENV PHPFPM_PM_MIN_SPARE_SERVERS=2
+ENV PHPFPM_PM_MAX_SPARE_SERVERS=5
 # hadolint ignore=DL3008,SC1089,SC2016
 RUN if [ -d /usr/local/etc/php-fpm.d ]; then \
         sed -i -e 's#\(listen *= *\).*$#\1/var/run/php-fpm/fpm.sock#g' \
@@ -78,14 +76,14 @@ RUN if [ -d /usr/local/etc/php-fpm.d ]; then \
 # All - Add configuration files
 COPY image-files/ /
 # Apache - configure if apache image
-ENV APACHE_REMOTE_IP_HEADER X-Forwarded-For
-ENV APACHE_REMOTE_IP_TRUSTED_PROXY 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
-ENV APACHE_REMOTE_IP_INTERNAL_PROXY 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+ENV APACHE_REMOTE_IP_HEADER=X-Forwarded-For
+ENV APACHE_REMOTE_IP_TRUSTED_PROXY="10.0.0.0/8 172.16.0.0/12 192.168.0.0/16"
+ENV APACHE_REMOTE_IP_INTERNAL_PROXY="10.0.0.0/8 172.16.0.0/12 192.168.0.0/16"
 # Apache - Avoid warning at startup
-ENV APACHE_SERVER_NAME __default__
+ENV APACHE_SERVER_NAME=__default__
 # Apache - Syslog Log
-ENV APACHE_SYSLOG_PORT 514
-ENV APACHE_SYSLOG_PROGNAME httpd
+ENV APACHE_SYSLOG_PORT=514
+ENV APACHE_SYSLOG_PROGNAME=httpd
 RUN if which apache2 > /dev/null 2>&1; then \
         sed -i -e 's#^export \([^=]\+\)=\(.*\)$#export \1=${\1:=\2}#' /etc/apache2/envvars \
         # Apache - Enable mod rewrite and headers
@@ -122,20 +120,20 @@ ADD https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERS
 RUN echo "${SUPERCRONIC_SHA1SUM}" "/usr/local/bin/supercronic" | sha1sum -c - \
     && chmod a+rx "/usr/local/bin/supercronic"
 # Php - Set default php.ini config variables (can be override at runtime)
-ENV PHP_CGI_FIX_PATHINFO 0
-ENV PHP_UPLOAD_MAX_FILESIZE 2m
-ENV PHP_POST_MAX_SIZE 8m
-ENV PHP_MAX_EXECUTION_TIME 30
-ENV PHP_MEMORY_LIMIT 64m
-ENV PHP_REALPATH_CACHE_SIZE 256k
-ENV PHP_REALPATH_CACHE_TTL 3600
-ENV PHP_DEFAULT_SOCKET_TIMEOUT 60
+ENV PHP_CGI_FIX_PATHINFO=0
+ENV PHP_UPLOAD_MAX_FILESIZE=2m
+ENV PHP_POST_MAX_SIZE=8m
+ENV PHP_MAX_EXECUTION_TIME=30
+ENV PHP_MEMORY_LIMIT=64m
+ENV PHP_REALPATH_CACHE_SIZE=256k
+ENV PHP_REALPATH_CACHE_TTL=3600
+ENV PHP_DEFAULT_SOCKET_TIMEOUT=60
 # Php - Opcache extension configuration
-ENV PHP_OPCACHE_ENABLE 1
-ENV PHP_OPCACHE_ENABLE_CLI 1
-ENV PHP_OPCACHE_MEMORY 64m
-ENV PHP_OPCACHE_VALIDATE_TIMESTAMP 0
-ENV PHP_OPCACHE_REVALIDATE_FREQ 600
+ENV PHP_OPCACHE_ENABLE=1
+ENV PHP_OPCACHE_ENABLE_CLI=1
+ENV PHP_OPCACHE_MEMORY=64m
+ENV PHP_OPCACHE_VALIDATE_TIMESTAMP=0
+ENV PHP_OPCACHE_REVALIDATE_FREQ=600
 # Php - update pecl protocols
 RUN pecl channel-update pecl.php.net
 # Php - Install extensions required for Yii 2.0 Framework
@@ -225,8 +223,9 @@ RUN pecl install xdebug \
     && echo "apc.serializer=igbinary" >> /usr/local/etc/php/conf.d/docker-php-ext-igbinary.ini \
     && echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
 # Pinpoint - Php module configuration
-ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.4
+ENV PINPOINT_COLLECTOR_AGENT_VERSION 0.4.5
 ENV PINPOINT_PHP_COLLETOR_AGENT_HOST tcp:pinpoint-collector-agent:8080
+ENV PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS 100
 ENV PINPOINT_PHP_TRACE_LIMIT -1
 # Pinpoint - Install pinpoint php module
 # hadolint ignore=DL3003,DL3008
@@ -234,11 +233,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends cmake \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    #&& git clone https://github.com/naver/pinpoint-c-agent.git /pinpoint-c-agent/ \
-    && git clone https://github.com/eeliu/pinpoint-c-agent.git /pinpoint-c-agent/ \
+    && git clone https://github.com/naver/pinpoint-c-agent.git /pinpoint-c-agent/ \
     && cd /pinpoint-c-agent \
-    #&& git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION} \
-    && git checkout feat-cli \
+    && git checkout v${PINPOINT_COLLECTOR_AGENT_VERSION} \
     && phpize \
     && ./configure \
     && make \
