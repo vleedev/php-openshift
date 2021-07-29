@@ -68,6 +68,7 @@ if [ -z "${PHP_OPCACHE_MAX_ACCELERATED_FILES}" ]; then
 fi
 
 echo "PHP_OPCACHE_MAX_ACCELERATED_FILES: ${PHP_OPCACHE_MAX_ACCELERATED_FILES:-none}"
+echo "PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS: ${PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS}"
 
 # Do database migration
 if [ -n "${YII_DB_MIGRATE}" -a "${YII_DB_MIGRATE}" = "true" ]; then
@@ -82,12 +83,10 @@ fi
 # Enable pinpoint by ENV variable
 if [ 0 -ne "${PHP_ENABLE_PINPOINT:-0}" ] ; then
     if docker-php-ext-enable pinpoint_php; then
-		echo "Enabled ${extension}"
+		echo "Enabled pinpoint_php"
 	else
-	    echo "Failed to enable ${extension}"
+	    echo "Failed to enable pinpoint_php"
 	fi
-else
-	rm -rf /etc/service.tpl/pinpoint-collector-agent*
 fi
 
 if [ -n "${1}" ]; then
@@ -95,6 +94,8 @@ if [ -n "${1}" ]; then
 fi
 
 if [ "${1}" = "yii" ]; then
+	export PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS=0
+	echo "PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS: ${PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS}"
 	exec php ${@}
 elif [ "${1}" = "cron" ]; then
 	if [ -n "${CRON_DEBUG}" -a "${CRON_DEBUG}" = "true" ] || [ "${YII_ENV}" = "dev" ]; then
@@ -102,9 +103,10 @@ elif [ "${1}" = "cron" ]; then
 		args="-debug"
 	fi
 	exec /usr/local/bin/supercronic ${args} /etc/crontab
-elif [ "${1}" = "apachectl" -o "${1}" = "bash" -o "${1}" = "composer" -o "${1}" = "php" -o "${1}" = "php-fpm" ]; then
-	exec ${@}
 elif [ "${1}" = "worker" ]; then
+	export PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS=0
+	echo "PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS: ${PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS}"
+	
     nb_worker=${2}
     shift 2
     for i in $(seq -w 1 ${nb_worker}); do
@@ -126,38 +128,43 @@ elif [ "${1}" = "loop" ]; then
 		sleep ${LOOP_TIMEOUT:-1d}
 	done
 else
-	# Apache - User
-	export APACHE_RUN_USER="${USER_NAME}"
-	export APACHE_RUN_GROUP="root"
-	echo "APACHE_RUN_USER: ${APACHE_RUN_USER}"
-	echo "APACHE_RUN_GROUP: ${APACHE_RUN_GROUP}"
-	
-	# Apache - Syslog
-	if ls -1 /etc/apache2/conf-enabled/ | grep -q '^syslog.conf$'; then
-		# APACHE_SYSLOG_HOST not defined but SYSLOG_HOST is
-		if [ -n "${SYSLOG_HOST}" -a -z "${APACHE_SYSLOG_HOST}" ]; then
-			export APACHE_SYSLOG_HOST=${SYSLOG_HOST}
+	if which apache2 > /dev/null 2>&1; then \
+		# Apache - User
+		export APACHE_RUN_USER="${USER_NAME}"
+		export APACHE_RUN_GROUP="root"
+		echo "APACHE_RUN_USER: ${APACHE_RUN_USER}"
+		echo "APACHE_RUN_GROUP: ${APACHE_RUN_GROUP}"
+		
+		# Apache - Syslog
+		if ls -1 /etc/apache2/conf-enabled/ | grep -q '^syslog.conf$'; then
+			# APACHE_SYSLOG_HOST not defined but SYSLOG_HOST is
+			if [ -n "${SYSLOG_HOST}" -a -z "${APACHE_SYSLOG_HOST}" ]; then
+				export APACHE_SYSLOG_HOST=${SYSLOG_HOST}
+			fi
+			if [ -n "${SYSLOG_PORT}" -a -z "${APACHE_SYSLOG_PORt}" ]; then
+				export APACHE_SYSLOG_PORT=${SYSLOG_PORT}
+			fi
+			echo "APACHE Syslog enabled"
+			echo "APACHE_SYSLOG_HOST: ${APACHE_SYSLOG_HOST}"
+			echo "APACHE_SYSLOG_PORT: ${APACHE_SYSLOG_PORT}"
+			echo "APACHE_SYSLOG_PROGNAME: ${APACHE_SYSLOG_PROGNAME}"
 		fi
-		if [ -n "${SYSLOG_PORT}" -a -z "${APACHE_SYSLOG_PORt}" ]; then
-			export APACHE_SYSLOG_PORT=${SYSLOG_PORT}
-		fi
-		echo "APACHE Syslog enabled"
-		echo "APACHE_SYSLOG_HOST: ${APACHE_SYSLOG_HOST}"
-		echo "APACHE_SYSLOG_PORT: ${APACHE_SYSLOG_PORT}"
-		echo "APACHE_SYSLOG_PROGNAME: ${APACHE_SYSLOG_PROGNAME}"
+
+		echo "APACHE_REMOTE_IP_HEADER: ${APACHE_REMOTE_IP_HEADER}"
+		echo "APACHE_REMOTE_IP_TRUSTED_PROXY: ${APACHE_REMOTE_IP_TRUSTED_PROXY}"
+		echo "APACHE_REMOTE_IP_INTERNAL_PROXY: ${APACHE_REMOTE_IP_INTERNAL_PROXY}"
 	fi
 
-	echo "APACHE_REMOTE_IP_HEADER: ${APACHE_REMOTE_IP_HEADER}"
-	echo "APACHE_REMOTE_IP_TRUSTED_PROXY: ${APACHE_REMOTE_IP_TRUSTED_PROXY}"
-	echo "APACHE_REMOTE_IP_INTERNAL_PROXY: ${APACHE_REMOTE_IP_INTERNAL_PROXY}"
-
-	if which php-fpm 2>&1 > /dev/null; then
-		echo "No command line running Apache HTTPD server with php-fpm"
-		export PHP_CGI_FIX_PATHINFO=1
-	else
-		echo "No command line running Apache HTTPD server with mod_php"
-		rm -rf /etc/service.tpl/php-fpm
+	# No args provided
+	if [ -z "${1}" ]; then
+		export PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS=0
+		echo "PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS: ${PINPOINT_PHP_SEND_SPAN_TIMEOUT_MS}"
+		# php-fpm image start php-fpm by default
+		if which php-fpm > /dev/null 2>&1; then
+			exec php-fpm --nodaemonize --force-stderr --allow-to-run-as-root
+		elif which apache2-foreground; then
+			exec apache2-foreground
+		fi
 	fi
-	mv /etc/service.tpl/* /etc/service/
-	exec runsvdir /etc/service/
+	exec ${@}
 fi

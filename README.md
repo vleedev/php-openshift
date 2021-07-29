@@ -204,3 +204,4 @@ You can override some PHP configuration setting by defining the following enviro
 
 * **YII_DB_MIGRATE**: Enable database schema migration at container start up if set to `true` for more detail refer to [Yii2 databse migration](https://www.yiiframework.com/doc/guide/2.0/en/db-migrations).
 * **YII_RBAC_MIGRATE**: Enable creation/update of your list of static roles and permissions on your authManager at container start up if set to `true`. For more detail refer to [macfly/yii2-rbac-cli](https://github.com/marty-macfly/yii2-rbac-cli).
+
