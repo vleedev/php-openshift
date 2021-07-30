@@ -1,5 +1,5 @@
 # Need to hard code the version until this is resolved https://github.com/renovatebot/renovate/issues/5626
-FROM php:8.0-fpm-buster@sha256:6b171c05b66c1f903ec9cb284880364818cd727f19ed4f8d15d9925951e7e714
+FROM php:8.0-fpm-buster@sha256:70f2dbac06ed936a3d72f80f96e0590100061f989a3077c4508adb8223c0d5f6
 ARG PHP_VERSION=8.0
 ENV DEBIAN_FRONTEND=noninteractive
 ARG USER_ID=2000
