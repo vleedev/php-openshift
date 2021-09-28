@@ -1,5 +1,5 @@
 # Need to hard code the version until this is resolved https://github.com/renovatebot/renovate/issues/5626
-FROM php:8.0-apache-buster@sha256:4bc4c6bd96d1eaa213174d70414afa36de561c206d935c320c85e61a720befc5
+FROM php:8.0-apache-buster@sha256:3939c881ece2706099197444bb385a4a8c19bc783e728ef6179343d20b56736e
 ENV DEBIAN_FRONTEND=noninteractive
 ARG USER_ID=2000
 ARG APP_DIR=/app
