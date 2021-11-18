@@ -1,4 +1,4 @@
-FROM php:7.4-fpm-buster@sha256:3297e16ef1b1e953df8ea4ffd675ffc27fcaf54b3d74338ef3b6bf7861f44da3
+FROM php:7.4-fpm-buster@sha256:b12f89d40bb3ebcec83a2879b42fd719b0c5139225b905472b2ee6fdeb6e3ba8
 ARG PHP_VERSION=7.4
 ENV DEBIAN_FRONTEND=noninteractive
 ARG USER_ID=2000
