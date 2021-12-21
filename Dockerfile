@@ -1,5 +1,5 @@
 # Need to hard code the version until this is resolved https://github.com/renovatebot/renovate/issues/5626
-FROM php:7.3-apache-buster@sha256:b3402013768e43db7864ddeca1a2ec4701fb8c951a050c41515d26b1b0f14b71
+FROM php:7.3-apache-buster@sha256:c322b64096adc7a729bdd544f9b3f04b29335cec307c7004d8bcc8255faec9fc
 ARG PHP_VERSION=7.3
 ENV DEBIAN_FRONTEND=noninteractive
 ARG USER_ID=2000
