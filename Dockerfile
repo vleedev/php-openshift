@@ -1,6 +1,6 @@
 # Need to hard code the version until this is resolved https://github.com/renovatebot/renovate/issues/5626
-FROM php:8.0-fpm-buster@sha256:0bae8157e1ed7a363dde6634f4ab7e2982232a28bee06ea24b78f10557a02078
-ARG PHP_VERSION=8.0
+FROM php:8.1-fpm-buster@sha256:e2af36f826fec07166dd390193fb0cd5957e361cdd9e1eb6e72de0100591441a
+ARG PHP_VERSION=8.1
 ENV DEBIAN_FRONTEND=noninteractive
 ARG USER_ID=2000
 ARG APP_DIR=/app
