@@ -1,6 +1,7 @@
 # Need to hard code the version until this is resolved https://github.com/renovatebot/renovate/issues/5626
 FROM php:8.1-apache-buster@sha256:aa13d07fd03d446d546540ae6c75a7e33f3ef228fb76506abae53a2d27ed1a2b
 ENV DEBIAN_FRONTEND=noninteractive
+ARG PHP_VERSION=8.1
 ARG USER_ID=2000
 ARG APP_DIR=/app
 ARG USER_HOME=/home/user
